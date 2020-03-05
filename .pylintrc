@@ -1,0 +1,7 @@
+[MESSAGES CONTROL]
+disable=
+    missing-function-docstring, 
+    missing-class-docstring, 
+    missing-module-docstring,
+    broad-except,
+    
