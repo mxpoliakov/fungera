@@ -3,7 +3,7 @@ import curses
 import numpy as np
 
 
-class Window(object):
+class Window:
     def __init__(self, window):
         self.window = window
 

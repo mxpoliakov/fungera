@@ -14,6 +14,7 @@ class Fungera:
 
         self.queue = Queue()
         self.cycle = 0
+        self.running = False
 
         self.info_window = self.screen.derived(np.array([0, 0]), INFO_PANEL_SIZE,)
         self.memory = Memory(self.screen)
@@ -37,9 +38,8 @@ class Fungera:
         curses.init_pair(Color.SELECTED_IP, curses.COLOR_WHITE, 160)
         curses.init_pair(Color.SELECTED_CHILD, curses.COLOR_WHITE, 128)
         curses.init_pair(Color.PARENT, curses.COLOR_WHITE, 27)
-        curses.init_pair(Color.CHILD, curses.COLOR_WHITE, 33)
         curses.init_pair(Color.IP, curses.COLOR_WHITE, 117)
-        curses.init_pair(Color.STANDARD, curses.COLOR_WHITE, -1)
+        curses.init_pair(Color.CHILD, curses.COLOR_WHITE, 33)
 
     def run(self):
         try:
@@ -63,10 +63,12 @@ class Fungera:
 
     def update_info(self):
         self.info_window.erase()
-        self.info_window.print('Cycle      : {}\n'.format(self.cycle))
-        self.info_window.print('Position   : {}\n'.format(list(self.memory.position)))
-        self.info_window.print('Organism   : {}\n'.format(self.queue.index))
-        self.queue.get_organism().update_info(self.info_window)
+        info = ''
+        info += 'Cycle      : {}\n'.format(self.cycle)
+        info += 'Position   : {}\n'.format(list(self.memory.position))
+        info += 'Organism   : {}\n'.format(self.queue.index)
+        info += self.queue.get_organism().info()
+        self.info_window.print(info)
 
     def make_cycle(self):
         self.queue.cycle_all()
@@ -76,10 +78,12 @@ class Fungera:
     def input_stream(self):
         while True:
             key = self.screen.get_key()
-            if key == ord('c'):
+            if key == -1 and self.running:
+                self.make_cycle()
+            elif key == ord('c') and not self.running:
                 self.make_cycle()
             elif key == ord(' '):
-                _ = [self.make_cycle() for _ in range(10000)]
+                self.running = not self.running
             elif key == curses.KEY_DOWN:
                 self.update_position(np.array([5, 0]))
             elif key == curses.KEY_UP:

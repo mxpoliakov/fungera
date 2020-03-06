@@ -1,6 +1,5 @@
 from copy import copy
 import numpy as np
-from window import Window
 from memory import Memory
 from config import Color, MEMORY_SIZE, INSTRUCTIONS
 
@@ -63,6 +62,7 @@ class Organism:
 
         self.mods = {'x': 0, 'y': 1}
         self.stack = []
+        self.stack_len = 8
 
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
@@ -87,7 +87,7 @@ class Organism:
     def update_ip(self):
         new_position = self.ip - self.memory.position
         color = Color.SELECTED_IP if self.is_selected else Color.IP
-        if (new_position >= 0).all() and (self.memory.size + new_position > 0).all():
+        if (new_position >= 0).all() and (self.memory.size - new_position > 0).all():
             self.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
@@ -97,14 +97,17 @@ class Organism:
         self.update_window(self.child_size, self.child_start, child_color)
         self.update_ip()
 
-    def update_info(self, info_window: Window):
-        info_window.print('  ip       : {}\n'.format(list(self.ip)))
-        info_window.print('  delta    : {}\n'.format(list(self.delta)))
+    def info(self):
+        info = ''
+        info += '  ip       : {}\n'.format(list(self.ip))
+        info += '  delta    : {}\n'.format(list(self.delta))
         for reg in self.regs:
-            info_window.print('  r{}       : {}\n'.format(reg, list(self.regs[reg])))
-
+            info += '  r{}       : {}\n'.format(reg, list(self.regs[reg]))
         for i in range(len(self.stack)):
-            info_window.print('  stack[{}] : {}\n'.format(i, list(self.stack[i])))
+            info += '  stack[{}] : {}\n'.format(i, list(self.stack[i]))
+        for i in range(len(self.stack), self.stack_len):
+            info += '  stack[{}] : \n'.format(i)
+        return info
 
     def no_operation(self):
         pass

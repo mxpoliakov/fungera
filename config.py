@@ -1,7 +1,7 @@
 from enum import IntEnum
 import numpy as np
 
-INFO_PANEL_SIZE = np.array([15, 40])
+INFO_PANEL_SIZE = np.array([20, 40])
 INITIAL_ORGANISM_POSITION = np.array([5, 5])
 MEMORY_SIZE = np.array([1024, 1024])
 
@@ -41,4 +41,3 @@ class Color(IntEnum):
     PARENT = 4
     CHILD = 5
     IP = 6
-    STANDARD = 7
