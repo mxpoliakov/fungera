@@ -1,10 +1,11 @@
 import curses
 import traceback
 import numpy as np
-from window import Window
-from memory import Memory
-from organism import Organism, Queue
-from config import Color, INFO_PANEL_SIZE, INITIAL_ORGANISM_POSITION
+from modules.window import Window
+from modules.memory import Memory
+from modules.queue import Queue
+from modules.organism import Organism
+from modules.config import Color, INFO_PANEL_SIZE, INITIAL_ORGANISM_POSITION
 
 
 class Fungera:
