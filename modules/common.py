@@ -2,7 +2,7 @@ from enum import Enum, IntEnum
 import numpy as np
 
 INFO_PANEL_SIZE = np.array([20, 40])
-INITIAL_ORGANISM_POSITION = np.array([5, 40])
+INITIAL_ORGANISM_POSITION = np.array([100, 100])
 MEMORY_SIZE = np.array([1024, 1024])
 
 SCROLL_STEP = 5
