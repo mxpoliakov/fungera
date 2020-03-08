@@ -142,6 +142,9 @@ class Organism:
     def subtract(self):
         self.regs[self.inst(3)] = self.regs[self.inst(1)] - self.regs[self.inst(2)]
 
+    def add(self):
+        self.regs[self.inst(3)] = self.regs[self.inst(1)] + self.regs[self.inst(2)]
+
     def allocate_child(self):
         for i in range(2, max(MEMORY_SIZE)):
             if not self.memory.is_allocated(self.ip_offset(i)):

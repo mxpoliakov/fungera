@@ -2,7 +2,7 @@ from enum import IntEnum
 import numpy as np
 
 INFO_PANEL_SIZE = np.array([20, 40])
-INITIAL_ORGANISM_POSITION = np.array([5, 5])
+INITIAL_ORGANISM_POSITION = np.array([5, 25])
 MEMORY_SIZE = np.array([1024, 1024])
 
 INSTRUCTIONS = {
@@ -25,6 +25,7 @@ INSTRUCTIONS = {
     '[': [np.array([6, 2]), 'decrement'],
     ']': [np.array([6, 3]), 'increment'],
     '-': [np.array([6, 4]), 'subtract'],
+    '+': [np.array([6, 5]), 'add'],
     'L': [np.array([7, 0]), 'load_inst'],
     'W': [np.array([7, 1]), 'write_inst'],
     '@': [np.array([7, 2]), 'allocate_child'],
