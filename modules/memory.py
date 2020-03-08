@@ -1,7 +1,7 @@
 import io
 import numpy as np
 from modules.window import Window
-from modules.config import MEMORY_SIZE, INFO_PANEL_SIZE, INSTRUCTIONS
+from modules.common import MEMORY_SIZE, INFO_PANEL_SIZE, INSTRUCTION
 
 
 class Memory:
@@ -50,7 +50,7 @@ class Memory:
         return self.memory_map[tuple(address)]
 
     def write_inst(self, address: np.array, inst_code: np.array):
-        for inst, info in INSTRUCTIONS.items():
+        for inst, info in INSTRUCTION.items():
             if (info[0] == inst_code).all():
                 self.memory_map[tuple(address)] = inst
                 self.update()

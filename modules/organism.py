@@ -1,7 +1,8 @@
 import numpy as np
 from modules.queue import Queue
 from modules.memory import Memory
-from modules.config import Color, MEMORY_SIZE, INSTRUCTIONS
+from modules.common import Color, MEMORY_SIZE, INSTRUCTION, DELTA
+
 
 class Organism:
     def __init__(self, memory: Memory, queue: Queue, address: np.array, size: np.array):
@@ -73,16 +74,16 @@ class Organism:
         pass
 
     def move_up(self):
-        self.delta = np.array([-1, 0])
+        self.delta = DELTA['UP']
 
     def move_down(self):
-        self.delta = np.array([1, 0])
+        self.delta = DELTA['DOWN']
 
     def move_right(self):
-        self.delta = np.array([0, 1])
+        self.delta = DELTA['RIGHT']
 
     def move_left(self):
-        self.delta = np.array([0, -1])
+        self.delta = DELTA['LEFT']
 
     def ip_offset(self, offset: int = 0) -> np.array:
         return self.ip + offset * self.delta
@@ -146,16 +147,22 @@ class Organism:
         self.regs[self.inst(3)] = self.regs[self.inst(1)] + self.regs[self.inst(2)]
 
     def allocate_child(self):
+        size = np.copy(self.regs[self.inst(1)])
         for i in range(2, max(MEMORY_SIZE)):
             if not self.memory.is_allocated(self.ip_offset(i)):
-                self.child_start = self.ip_offset(i)
+                if np.array_equal(self.delta, DELTA['LEFT']) or np.array_equal(
+                    self.delta, DELTA['DOWN']
+                ):
+                    self.child_start = self.ip_offset(i + np.array([0, size[1] - 1]))
+                else:
+                    self.child_start = self.ip_offset(i)
                 self.regs[self.inst(2)] = np.copy(self.child_start)
                 break
         self.child_size = np.copy(self.regs[self.inst(1)])
         self.memory.allocate(self.child_start, self.child_size)
 
     def load_inst(self):
-        self.regs[self.inst(2)] = INSTRUCTIONS[
+        self.regs[self.inst(2)] = INSTRUCTION[
             self.memory.inst(self.regs[self.inst(1)])
         ][0]
 
@@ -174,6 +181,6 @@ class Organism:
         self.child_start = np.array([0, 0])
 
     def cycle(self):
-        getattr(self, INSTRUCTIONS[self.inst()][1])()
+        getattr(self, INSTRUCTION[self.inst()][1])()
         self.ip += self.delta
         self.update()

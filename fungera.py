@@ -5,7 +5,13 @@ from modules.window import Window
 from modules.memory import Memory
 from modules.queue import Queue
 from modules.organism import Organism
-from modules.config import Color, INFO_PANEL_SIZE, INITIAL_ORGANISM_POSITION
+from modules.common import (
+    Color,
+    INFO_PANEL_SIZE,
+    INITIAL_ORGANISM_POSITION,
+    DELTA,
+    SCROLL_STEP,
+)
 
 
 class Fungera:
@@ -86,13 +92,13 @@ class Fungera:
             elif key == ord(' '):
                 self.running = not self.running
             elif key == curses.KEY_DOWN:
-                self.update_position(np.array([5, 0]))
+                self.update_position(SCROLL_STEP * DELTA['DOWN'])
             elif key == curses.KEY_UP:
-                self.update_position(np.array([-5, 0]))
+                self.update_position(SCROLL_STEP * DELTA['UP'])
             elif key == curses.KEY_RIGHT:
-                self.update_position(np.array([0, 5]))
+                self.update_position(SCROLL_STEP * DELTA['RIGHT'])
             elif key == curses.KEY_LEFT:
-                self.update_position(np.array([0, -5]))
+                self.update_position(SCROLL_STEP * DELTA['LEFT'])
             elif key == ord('d'):
                 self.queue.select_next()
                 self.update_info()

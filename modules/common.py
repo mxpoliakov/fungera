@@ -1,11 +1,13 @@
-from enum import IntEnum
+from enum import Enum, IntEnum
 import numpy as np
 
 INFO_PANEL_SIZE = np.array([20, 40])
-INITIAL_ORGANISM_POSITION = np.array([5, 25])
+INITIAL_ORGANISM_POSITION = np.array([5, 40])
 MEMORY_SIZE = np.array([1024, 1024])
 
-INSTRUCTIONS = {
+SCROLL_STEP = 5
+
+INSTRUCTION = {
     '.': [np.array([0, 0]), 'no_operation'],
     ':': [np.array([0, 1]), 'no_operation'],
     'a': [np.array([1, 0]), 'no_operation'],
@@ -32,6 +34,13 @@ INSTRUCTIONS = {
     '$': [np.array([7, 3]), 'split_child'],
     '{': [np.array([8, 0]), 'push'],
     '}': [np.array([8, 1]), 'pop'],
+}
+
+DELTA = {
+    'LEFT': np.array([0, -1]),
+    'RIGHT': np.array([0, 1]),
+    'UP': np.array([-1, 0]),
+    'DOWN': np.array([1, 0]),
 }
 
 

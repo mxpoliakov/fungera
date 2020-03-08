@@ -1,5 +1,6 @@
 from copy import copy
 
+
 class Queue:
     def __init__(self):
         self.organisms = []
