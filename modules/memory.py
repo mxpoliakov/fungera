@@ -28,7 +28,7 @@ class Memory:
             address[0] : address[0] + size[0], address[1] : address[1] + size[1]
         ] = np.ones(size)
 
-    def update(self):
+    def update(self, refresh=False):
         buffer = io.BytesIO()
         memory_map_subset = self.memory_map[
             self.position[0] : self.size[0] + self.position[0],
@@ -38,13 +38,13 @@ class Memory:
             buffer, memory_map_subset, fmt='%s', delimiter='', newline='',
         )
         self.window.erase()
-        self.window.print(buffer.getvalue())
+        self.window.print(buffer.getvalue(), refresh=refresh)
 
     def scroll(self, delta: np.array):
         new_position = self.position + delta
         if (new_position >= 0).all():
             self.position += delta
-            self.update()
+            self.update(refresh=True)
 
     def inst(self, address: np.array):
         return self.memory_map[tuple(address)]
@@ -53,7 +53,7 @@ class Memory:
         for inst, info in INSTRUCTION.items():
             if (info[0] == inst_code).all():
                 self.memory_map[tuple(address)] = inst
-                self.update()
+                self.update(refresh=False)
                 break
 
     def is_allocated(self, address: np.array):

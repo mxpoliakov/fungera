@@ -19,9 +19,10 @@ class Window:
     def get_key(self):
         return self.window.getch()
 
-    def print(self, string: str):
+    def print(self, string: str, refresh: bool = True):
         self.window.addstr(string)
-        self.window.refresh()
+        if refresh:
+            self.window.refresh()
 
     def background(self, color: int):
         self.window.bkgd(' ', curses.color_pair(color))
