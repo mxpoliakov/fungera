@@ -1,7 +1,7 @@
 import io
 import numpy as np
 from modules.window import Window
-from modules.common import MEMORY_SIZE, INFO_PANEL_SIZE, INSTRUCTION
+from modules.common import MEMORY_SIZE, INFO_SIZE, INSTRUCTION
 
 
 class Memory:
@@ -10,11 +10,11 @@ class Memory:
         self.allocation_map = np.zeros(MEMORY_SIZE)
         screen_display_size = screen.get_size()
         self.window = screen.derived(
-            (0, INFO_PANEL_SIZE[1]),
-            (screen_display_size[0], screen_display_size[1] - INFO_PANEL_SIZE[1]),
+            (0, INFO_SIZE[1]),
+            (screen_display_size[0], screen_display_size[1] - INFO_SIZE[1]),
         )
         self.size = self.window.get_size() - np.array([1, 0])
-        self.position = np.array([0, 0])
+        self.position = MEMORY_SIZE // 2
         self.update()
 
     def load_genome(self, genome: np.array, address: np.array, size: np.array):

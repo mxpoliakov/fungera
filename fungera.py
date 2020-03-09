@@ -7,10 +7,10 @@ from modules.queue import Queue
 from modules.organism import Organism
 from modules.common import (
     Color,
-    INFO_PANEL_SIZE,
-    INITIAL_ORGANISM_POSITION,
+    INFO_SIZE,
     DELTA,
     SCROLL_STEP,
+    MEMORY_SIZE,
 )
 
 
@@ -23,12 +23,10 @@ class Fungera:
         self.cycle = 0
         self.running = False
 
-        self.info_window = self.screen.derived(np.array([0, 0]), INFO_PANEL_SIZE,)
+        self.info_window = self.screen.derived(np.array([0, 0]), INFO_SIZE,)
         self.memory = Memory(self.screen)
-        genome_size = self.load_genome_into_memory(
-            'initial.gen', INITIAL_ORGANISM_POSITION
-        )
-        Organism(self.memory, self.queue, INITIAL_ORGANISM_POSITION, genome_size)
+        genome_size = self.load_genome_into_memory('initial.gen', MEMORY_SIZE // 2)
+        Organism(self.memory, self.queue, MEMORY_SIZE // 2, genome_size)
         self.update_info()
 
     def init_curses(self):

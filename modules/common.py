@@ -1,11 +1,10 @@
-from enum import Enum, IntEnum
+from enum import IntEnum
 import numpy as np
 
-INFO_PANEL_SIZE = np.array([20, 40])
-INITIAL_ORGANISM_POSITION = np.array([100, 100])
-MEMORY_SIZE = np.array([1024, 1024])
+INFO_SIZE = np.array([20, 40])
+MEMORY_SIZE = np.array([10000, 10000])
 
-SCROLL_STEP = 5
+SCROLL_STEP = MEMORY_SIZE // 1000
 
 INSTRUCTION = {
     '.': [np.array([0, 0]), 'no_operation'],

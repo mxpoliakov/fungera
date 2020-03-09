@@ -150,12 +150,13 @@ class Organism:
         size = np.copy(self.regs[self.inst(1)])
         for i in range(2, max(MEMORY_SIZE)):
             if not self.memory.is_allocated(self.ip_offset(i)):
-                if np.array_equal(self.delta, DELTA['LEFT']) or np.array_equal(
-                    self.delta, DELTA['DOWN']
-                ):
+                if np.array_equal(self.delta, DELTA['LEFT']):
                     self.child_start = self.ip_offset(i + np.array([0, size[1] - 1]))
+                elif np.array_equal(self.delta, DELTA['UP']):
+                    self.child_start = self.ip_offset(i + np.array([size[0] - 1, 0]))
                 else:
                     self.child_start = self.ip_offset(i)
+
                 self.regs[self.inst(2)] = np.copy(self.child_start)
                 break
         self.child_size = np.copy(self.regs[self.inst(1)])
