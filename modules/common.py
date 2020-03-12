@@ -1,7 +1,6 @@
-from enum import IntEnum
 import numpy as np
 
-INFO_SIZE = np.array([20, 40])
+INFO_SIZE = np.array([20, 30])
 MEMORY_SIZE = np.array([10000, 10000])
 
 SCROLL_STEP = MEMORY_SIZE // 1000
@@ -23,16 +22,15 @@ INSTRUCTION = {
     '?': [np.array([5, 0]), 'if_not_zero'],
     '1': [np.array([6, 0]), 'one'],
     '0': [np.array([6, 1]), 'zero'],
-    '[': [np.array([6, 2]), 'decrement'],
-    ']': [np.array([6, 3]), 'increment'],
-    '-': [np.array([6, 4]), 'subtract'],
-    '+': [np.array([6, 5]), 'add'],
+    '-': [np.array([6, 2]), 'decrement'],
+    '+': [np.array([6, 3]), 'increment'],
+    '~': [np.array([6, 4]), 'subtract'],
     'L': [np.array([7, 0]), 'load_inst'],
     'W': [np.array([7, 1]), 'write_inst'],
     '@': [np.array([7, 2]), 'allocate_child'],
     '$': [np.array([7, 3]), 'split_child'],
-    '{': [np.array([8, 0]), 'push'],
-    '}': [np.array([8, 1]), 'pop'],
+    'S': [np.array([8, 0]), 'push'],
+    'P': [np.array([8, 1]), 'pop'],
 }
 
 DELTA = {
@@ -42,11 +40,11 @@ DELTA = {
     'DOWN': np.array([1, 0]),
 }
 
-
-class Color(IntEnum):
-    SELECTED_PARENT = 1
-    SELECTED_CHILD = 2
-    SELECTED_IP = 3
-    PARENT = 4
-    CHILD = 5
-    IP = 6
+COLOR = {
+    'SELECTED_PARENT': 1,
+    'SELECTED_CHILD': 2,
+    'SELECTED_IP': 3,
+    'PARENT': 4,
+    'CHILD': 5,
+    'IP': 6,
+}

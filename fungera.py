@@ -6,7 +6,7 @@ from modules.memory import Memory
 from modules.queue import Queue
 from modules.organism import Organism
 from modules.common import (
-    Color,
+    COLOR,
     INFO_SIZE,
     DELTA,
     SCROLL_STEP,
@@ -39,12 +39,12 @@ class Fungera:
 
         curses.start_color()
         curses.use_default_colors()
-        curses.init_pair(Color.SELECTED_PARENT, curses.COLOR_WHITE, 126)
-        curses.init_pair(Color.SELECTED_IP, curses.COLOR_WHITE, 160)
-        curses.init_pair(Color.SELECTED_CHILD, curses.COLOR_WHITE, 128)
-        curses.init_pair(Color.PARENT, curses.COLOR_WHITE, 27)
-        curses.init_pair(Color.IP, curses.COLOR_WHITE, 117)
-        curses.init_pair(Color.CHILD, curses.COLOR_WHITE, 33)
+        curses.init_pair(COLOR['SELECTED_PARENT'], curses.COLOR_WHITE, 126)
+        curses.init_pair(COLOR['SELECTED_IP'], curses.COLOR_WHITE, 160)
+        curses.init_pair(COLOR['SELECTED_CHILD'], curses.COLOR_WHITE, 128)
+        curses.init_pair(COLOR['PARENT'], curses.COLOR_WHITE, 27)
+        curses.init_pair(COLOR['IP'], curses.COLOR_WHITE, 117)
+        curses.init_pair(COLOR['CHILD'], curses.COLOR_WHITE, 33)
 
     def run(self):
         try:

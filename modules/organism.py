@@ -1,7 +1,7 @@
 import numpy as np
 from modules.queue import Queue
 from modules.memory import Memory
-from modules.common import Color, MEMORY_SIZE, INSTRUCTION, DELTA
+from modules.common import COLOR, MEMORY_SIZE, INSTRUCTION, DELTA
 
 
 class Organism:
@@ -47,14 +47,14 @@ class Organism:
 
     def update_ip(self):
         new_position = self.ip - self.memory.position
-        color = Color.SELECTED_IP if self.is_selected else Color.IP
+        color = COLOR['SELECTED_IP'] if self.is_selected else COLOR['IP']
         if (new_position >= 0).all() and (self.memory.size - new_position > 0).all():
             self.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
-        parent_color = Color.SELECTED_PARENT if self.is_selected else Color.PARENT
+        parent_color = COLOR['SELECTED_PARENT'] if self.is_selected else COLOR['PARENT']
         self.update_window(self.size, self.start, parent_color)
-        child_color = Color.SELECTED_CHILD if self.is_selected else Color.CHILD
+        child_color = COLOR['SELECTED_CHILD'] if self.is_selected else COLOR['CHILD']
         self.update_window(self.child_size, self.child_start, child_color)
         self.update_ip()
 
@@ -142,9 +142,6 @@ class Organism:
 
     def subtract(self):
         self.regs[self.inst(3)] = self.regs[self.inst(1)] - self.regs[self.inst(2)]
-
-    def add(self):
-        self.regs[self.inst(3)] = self.regs[self.inst(1)] + self.regs[self.inst(2)]
 
     def allocate_child(self):
         size = np.copy(self.regs[self.inst(1)])
