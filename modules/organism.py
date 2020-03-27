@@ -194,6 +194,7 @@ class Organism:
 
     def split_child(self):
         if not np.array_equal(self.child_size, np.array([0, 0])):
+            self.memory.deallocate(self.child_start, self.child_size)
             Organism(self.memory, self.queue, self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
@@ -204,9 +205,8 @@ class Organism:
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
-        if (new_ip < 0).any():
-            return None
-        if (new_ip - MEMORY_SIZE > 0).any():
-            return None
-        self.ip = np.copy(new_ip)
-        self.update()
+        if (new_ip < 0).any() or (new_ip - MEMORY_SIZE > 0).any():
+            self.update()
+        else:
+            self.ip = np.copy(new_ip)
+            self.update()
