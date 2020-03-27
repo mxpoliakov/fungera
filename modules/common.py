@@ -1,9 +1,9 @@
 import numpy as np
 
 INFO_SIZE = np.array([20, 30])
-MEMORY_SIZE = np.array([10000, 10000])
+MEMORY_SIZE = np.array([500, 500])
 
-SCROLL_STEP = MEMORY_SIZE // 1000
+SCROLL_STEP = MEMORY_SIZE // 500
 
 INSTRUCTION = {
     '.': [np.array([0, 0]), 'no_operation'],

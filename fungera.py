@@ -71,11 +71,14 @@ class Fungera:
         info = ''
         info += 'Cycle      : {}\n'.format(self.cycle)
         info += 'Position   : {}\n'.format(list(self.memory.position))
+        info += 'Total      : {}\n'.format(len(self.queue.organisms))
         info += 'Organism   : {}\n'.format(self.queue.index)
         info += self.queue.get_organism().info()
         self.info_window.print(info)
 
     def make_cycle(self):
+        if self.cycle % (MEMORY_SIZE[0] / 10) == 0:
+            self.memory.cycle()
         self.queue.cycle_all()
         self.cycle += 1
         self.update_info()

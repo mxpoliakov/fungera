@@ -4,6 +4,13 @@ from modules.memory import Memory
 from modules.common import COLOR, MEMORY_SIZE, INSTRUCTION, DELTA
 
 
+class RegsDict(dict):
+    def __setitem__(self, key, value):
+        if key not in self:
+            raise ValueError
+        super().__setitem__(key, value)
+
+
 class Organism:
     def __init__(self, memory: Memory, queue: Queue, address: np.array, size: np.array):
         self.is_selected = False
@@ -14,16 +21,19 @@ class Organism:
         self.size = np.array(size)
         self.start = np.array(address)
 
-        self.regs = {
-            'a': np.array([0, 0]),
-            'b': np.array([0, 0]),
-            'c': np.array([0, 0]),
-            'd': np.array([0, 0]),
-        }
+        self.regs = RegsDict(
+            {
+                'a': np.array([0, 0]),
+                'b': np.array([0, 0]),
+                'c': np.array([0, 0]),
+                'd': np.array([0, 0]),
+            }
+        )
 
         self.mods = {'x': 0, 'y': 1}
         self.stack = []
         self.stack_len = 8
+        self.errors = 0
 
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
@@ -48,7 +58,11 @@ class Organism:
     def update_ip(self):
         new_position = self.ip - self.memory.position
         color = COLOR['SELECTED_IP'] if self.is_selected else COLOR['IP']
-        if (new_position >= 0).all() and (self.memory.size - new_position > 0).all():
+        if (
+            (new_position >= 0).all()
+            and (self.memory.size - new_position > 0).all()
+            and self.memory.is_allocated(self.ip)
+        ):
             self.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
@@ -60,6 +74,7 @@ class Organism:
 
     def info(self):
         info = ''
+        info += '  errors   : {}\n'.format(self.errors)
         info += '  ip       : {}\n'.format(list(self.ip))
         info += '  delta    : {}\n'.format(list(self.delta))
         for reg in self.regs:
@@ -145,19 +160,21 @@ class Organism:
 
     def allocate_child(self):
         size = np.copy(self.regs[self.inst(1)])
+        is_space_found = False
         for i in range(2, max(MEMORY_SIZE)):
-            if not self.memory.is_allocated(self.ip_offset(i)):
-                if np.array_equal(self.delta, DELTA['LEFT']):
-                    self.child_start = self.ip_offset(i + np.array([0, size[1] - 1]))
-                elif np.array_equal(self.delta, DELTA['UP']):
-                    self.child_start = self.ip_offset(i + np.array([size[0] - 1, 0]))
-                else:
-                    self.child_start = self.ip_offset(i)
-
-                self.regs[self.inst(2)] = np.copy(self.child_start)
+            is_allocated_region = self.memory.is_allocated_region(
+                self.ip_offset(i), size
+            )
+            if is_allocated_region is None:
                 break
-        self.child_size = np.copy(self.regs[self.inst(1)])
-        self.memory.allocate(self.child_start, self.child_size)
+            if not is_allocated_region:
+                self.child_start = self.ip_offset(i)
+                self.regs[self.inst(2)] = np.copy(self.child_start)
+                is_space_found = True
+                break
+        if is_space_found:
+            self.child_size = np.copy(self.regs[self.inst(1)])
+            self.memory.allocate(self.child_start, self.child_size)
 
     def load_inst(self):
         self.regs[self.inst(2)] = INSTRUCTION[
@@ -165,20 +182,31 @@ class Organism:
         ][0]
 
     def write_inst(self):
-        self.memory.write_inst(self.regs[self.inst(1)], self.regs[self.inst(2)])
+        if not np.array_equal(self.child_size, np.array([0, 0])):
+            self.memory.write_inst(self.regs[self.inst(1)], self.regs[self.inst(2)])
 
     def push(self):
-        self.stack.append(np.copy(self.regs[self.inst(1)]))
+        if len(self.stack) < self.stack_len:
+            self.stack.append(np.copy(self.regs[self.inst(1)]))
 
     def pop(self):
         self.regs[self.inst(1)] = np.copy(self.stack.pop())
 
     def split_child(self):
-        Organism(self.memory, self.queue, self.child_start, self.child_size)
+        if not np.array_equal(self.child_size, np.array([0, 0])):
+            Organism(self.memory, self.queue, self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
 
     def cycle(self):
-        getattr(self, INSTRUCTION[self.inst()][1])()
-        self.ip += self.delta
+        try:
+            getattr(self, INSTRUCTION[self.inst()][1])()
+        except Exception:
+            self.errors += 1
+        new_ip = self.ip + self.delta
+        if (new_ip < 0).any():
+            return None
+        if (new_ip - MEMORY_SIZE > 0).any():
+            return None
+        self.ip = np.copy(new_ip)
         self.update()
