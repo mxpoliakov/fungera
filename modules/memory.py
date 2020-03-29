@@ -1,7 +1,7 @@
 import io
 import numpy as np
 from modules.window import Window
-from modules.common import MEMORY_SIZE, INFO_SIZE, INSTRUCTION
+from modules.common import MEMORY_SIZE, INFO_SIZE, INSTRUCTION, MEMORY_FULL_RATIO
 
 
 class Memory:
@@ -29,9 +29,18 @@ class Memory:
         ] = np.ones(size)
 
     def deallocate(self, address: np.array, size: np.array):
-        self.allocation_map[
-            address[0] : address[0] + size[0], address[1] : address[1] + size[1]
-        ] = np.zeros(size)
+        try:
+            self.allocation_map[
+                address[0] : address[0] + size[0], address[1] : address[1] + size[1]
+            ] = np.zeros(size)
+        except Exception:
+            pass
+
+    def is_time_to_kill(self):
+        ratio = np.count_nonzero(self.allocation_map) / np.count_nonzero(
+            self.allocation_map == 0
+        )
+        return ratio > MEMORY_FULL_RATIO
 
     def update(self, refresh=False):
         buffer = io.BytesIO()

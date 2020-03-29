@@ -5,6 +5,9 @@ MEMORY_SIZE = np.array([500, 500])
 
 SCROLL_STEP = MEMORY_SIZE // 500
 
+KILL_ORGANISMS_RATIO = 0.5
+MEMORY_FULL_RATIO = 0.25
+
 INSTRUCTION = {
     '.': [np.array([0, 0]), 'no_operation'],
     ':': [np.array([0, 1]), 'no_operation'],

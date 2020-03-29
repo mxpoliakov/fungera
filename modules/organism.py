@@ -199,6 +199,18 @@ class Organism:
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
 
+    def __lt__(self, other):
+        return self.errors < other.errors
+
+    def kill(self):
+        self.memory.deallocate(self.start, self.size)
+        self.size = np.array([0, 0])
+        if not np.array_equal(self.child_size, np.array([0, 0])):
+            self.memory.deallocate(self.child_start, self.child_size)
+        self.child_size = np.array([0, 0])
+        self.update()
+        self.memory.update(refresh=True)
+
     def cycle(self):
         try:
             getattr(self, INSTRUCTION[self.inst()][1])()

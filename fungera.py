@@ -79,6 +79,9 @@ class Fungera:
     def make_cycle(self):
         if self.cycle % (MEMORY_SIZE[0] / 10) == 0:
             self.memory.cycle()
+        if self.cycle % (MEMORY_SIZE[0] * 100) == 0:
+            if self.memory.is_time_to_kill():
+                self.queue.kill_organisms()
         self.queue.cycle_all()
         self.cycle += 1
         self.update_info()
