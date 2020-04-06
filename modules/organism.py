@@ -66,11 +66,16 @@ class Organism:
             self.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
-        parent_color = COLOR['SELECTED_PARENT'] if self.is_selected else COLOR['PARENT']
-        self.update_window(self.size, self.start, parent_color)
-        child_color = COLOR['SELECTED_CHILD'] if self.is_selected else COLOR['CHILD']
-        self.update_window(self.child_size, self.child_start, child_color)
-        self.update_ip()
+        if not self.memory.minimal:
+            parent_color = (
+                COLOR['SELECTED_PARENT'] if self.is_selected else COLOR['PARENT']
+            )
+            self.update_window(self.size, self.start, parent_color)
+            child_color = (
+                COLOR['SELECTED_CHILD'] if self.is_selected else COLOR['CHILD']
+            )
+            self.update_window(self.child_size, self.child_start, child_color)
+            self.update_ip()
 
     def info(self):
         info = ''
@@ -208,8 +213,9 @@ class Organism:
         if not np.array_equal(self.child_size, np.array([0, 0])):
             self.memory.deallocate(self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
-        self.update()
-        self.memory.update(refresh=True)
+        if not self.memory.minimal:
+            self.update()
+            self.memory.update(refresh=True)
 
     def cycle(self):
         try:
@@ -218,7 +224,6 @@ class Organism:
             self.errors += 1
         new_ip = self.ip + self.delta
         if (new_ip < 0).any() or (new_ip - MEMORY_SIZE > 0).any():
-            self.update()
-        else:
-            self.ip = np.copy(new_ip)
-            self.update()
+            return None
+        self.ip = np.copy(new_ip)
+        return None

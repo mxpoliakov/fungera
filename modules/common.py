@@ -1,12 +1,12 @@
 import numpy as np
 
 INFO_SIZE = np.array([20, 30])
-MEMORY_SIZE = np.array([500, 500])
+MEMORY_SIZE = np.array([1000, 1000])
 
 SCROLL_STEP = MEMORY_SIZE // 500
 
 KILL_ORGANISMS_RATIO = 0.5
-MEMORY_FULL_RATIO = 0.25
+MEMORY_FULL_RATIO = 0.75
 
 INSTRUCTION = {
     '.': [np.array([0, 0]), 'no_operation'],

@@ -8,6 +8,7 @@ class Memory:
     def __init__(self, screen: Window):
         self.memory_map = np.full(MEMORY_SIZE, '.', dtype=str)
         self.allocation_map = np.zeros(MEMORY_SIZE)
+        self.minimal = False
         screen_display_size = screen.get_size()
         self.window = screen.derived(
             (0, INFO_SIZE[1]),
@@ -42,17 +43,24 @@ class Memory:
         )
         return ratio > MEMORY_FULL_RATIO
 
-    def update(self, refresh=False):
-        buffer = io.BytesIO()
-        memory_map_subset = self.memory_map[
-            self.position[0] : self.size[0] + self.position[0],
-            self.position[1] : self.size[1] + self.position[1],
-        ]
-        np.savetxt(
-            buffer, memory_map_subset, fmt='%s', delimiter='', newline='',
-        )
+    def enable_minimal(self):
+        self.minimal = not self.minimal
         self.window.erase()
-        self.window.print(buffer.getvalue(), refresh=refresh)
+        self.window.print('', refresh=True)
+        self.update(refresh=True)
+
+    def update(self, refresh=False):
+        if not self.minimal:
+            buffer = io.BytesIO()
+            memory_map_subset = self.memory_map[
+                self.position[0] : self.size[0] + self.position[0],
+                self.position[1] : self.size[1] + self.position[1],
+            ]
+            np.savetxt(
+                buffer, memory_map_subset, fmt='%s', delimiter='', newline='',
+            )
+            self.window.erase()
+            self.window.print(buffer.getvalue(), refresh=refresh)
 
     def scroll(self, delta: np.array):
         new_position = self.position + delta
