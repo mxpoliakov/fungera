@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 from modules.queue import Queue
 from modules.memory import Memory
@@ -12,83 +13,60 @@ class RegsDict(dict):
 
 
 class Organism:
-    def __init__(self, memory: Memory, queue: Queue, address: np.array, size: np.array):
-        self.is_selected = False
+    def __init__(
+        self,
+        memory: Memory,
+        queue: Queue,
+        address: np.array,
+        size: np.array,
+        ip: Optional[np.array] = None,
+        delta: Optional[np.array] = np.array([0, 1]),
+        start: Optional[np.array] = None,
+        regs: Optional[RegsDict] = None,
+        stack: Optional[list] = None,
+        errors: Optional[int] = 0,
+        child_size: Optional[np.array] = np.array([0, 0]),
+        child_start: Optional[np.array] = np.array([0, 0]),
+        is_selected: Optional[bool] = False,
+    ):
         # pylint: disable=invalid-name
-        self.ip = np.array(address)
-        self.delta = np.array([0, 1])
+        self.ip = np.array(address) if ip is None and address is not None else ip
+        self.delta = delta
 
         self.size = np.array(size)
-        self.start = np.array(address)
-
-        self.regs = RegsDict(
-            {
-                'a': np.array([0, 0]),
-                'b': np.array([0, 0]),
-                'c': np.array([0, 0]),
-                'd': np.array([0, 0]),
-            }
+        self.start = (
+            np.array(address) if start is None and address is not None else start
         )
+        self.regs = (
+            RegsDict(
+                {
+                    'a': np.array([0, 0]),
+                    'b': np.array([0, 0]),
+                    'c': np.array([0, 0]),
+                    'd': np.array([0, 0]),
+                }
+            )
+            if regs is None
+            else regs
+        )
+        self.stack = [] if stack is None else stack
 
-        self.mods = {'x': 0, 'y': 1}
-        self.stack = []
-        self.stack_len = 8
-        self.errors = 0
+        self.errors = errors
 
-        self.child_size = np.array([0, 0])
-        self.child_start = np.array([0, 0])
+        self.child_size = child_size
+        self.child_start = child_start
+
+        self.is_selected = is_selected
 
         self.memory = memory
-        self.memory.allocate(address, size)
+        if address is not None:
+            self.memory.allocate(address, size)
 
         self.queue = queue
         self.queue.add_organism(self)
 
-        self.update()
-
-    def update_window(self, size, start, color):
-        new_start = start - self.memory.position
-        new_size = size + new_start.clip(max=0)
-        if (new_size > 0).all() and (self.memory.size - new_start > 0).all():
-            self.memory.window.derived(
-                new_start.clip(min=0),
-                np.minimum(new_size, self.memory.size - new_start),
-            ).background(color)
-
-    def update_ip(self):
-        new_position = self.ip - self.memory.position
-        color = COLOR['SELECTED_IP'] if self.is_selected else COLOR['IP']
-        if (
-            (new_position >= 0).all()
-            and (self.memory.size - new_position > 0).all()
-            and self.memory.is_allocated(self.ip)
-        ):
-            self.memory.window.derived(new_position, (1, 1)).background(color)
-
-    def update(self):
-        if not self.memory.minimal:
-            parent_color = (
-                COLOR['SELECTED_PARENT'] if self.is_selected else COLOR['PARENT']
-            )
-            self.update_window(self.size, self.start, parent_color)
-            child_color = (
-                COLOR['SELECTED_CHILD'] if self.is_selected else COLOR['CHILD']
-            )
-            self.update_window(self.child_size, self.child_start, child_color)
-            self.update_ip()
-
-    def info(self):
-        info = ''
-        info += '  errors   : {}\n'.format(self.errors)
-        info += '  ip       : {}\n'.format(list(self.ip))
-        info += '  delta    : {}\n'.format(list(self.delta))
-        for reg in self.regs:
-            info += '  r{}       : {}\n'.format(reg, list(self.regs[reg]))
-        for i in range(len(self.stack)):
-            info += '  stack[{}] : {}\n'.format(i, list(self.stack[i]))
-        for i in range(len(self.stack), self.stack_len):
-            info += '  stack[{}] : \n'.format(i)
-        return info
+        self.mods = {'x': 0, 'y': 1}
+        self.stack_len = 8
 
     def no_operation(self):
         pass
@@ -200,7 +178,7 @@ class Organism:
     def split_child(self):
         if not np.array_equal(self.child_size, np.array([0, 0])):
             self.memory.deallocate(self.child_start, self.child_size)
-            Organism(self.memory, self.queue, self.child_start, self.child_size)
+            self.__class__(self.memory, self.queue, self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
 
@@ -213,9 +191,6 @@ class Organism:
         if not np.array_equal(self.child_size, np.array([0, 0])):
             self.memory.deallocate(self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
-        if not self.memory.minimal:
-            self.update()
-            self.memory.update(refresh=True)
 
     def cycle(self):
         try:
@@ -227,3 +202,117 @@ class Organism:
             return None
         self.ip = np.copy(new_ip)
         return None
+
+    def toogle(self, memory):
+        OrganismFull(
+            memory=memory,
+            queue=self.queue,
+            address=None,
+            size=self.size,
+            ip=self.ip,
+            delta=self.delta,
+            start=self.start,
+            regs=self.regs,
+            stack=self.stack,
+            errors=self.errors,
+            child_size=self.child_size,
+            child_start=self.child_start,
+            is_selected=self.is_selected,
+        )
+
+
+class OrganismFull(Organism):
+    def __init__(
+        self,
+        memory: Memory,
+        queue: Queue,
+        address: np.array,
+        size: np.array,
+        ip: Optional[np.array] = None,
+        delta: Optional[np.array] = np.array([0, 1]),
+        start: Optional[np.array] = None,
+        regs: Optional[RegsDict] = None,
+        stack: Optional[list] = None,
+        errors: Optional[int] = 0,
+        child_size: Optional[np.array] = np.array([0, 0]),
+        child_start: Optional[np.array] = np.array([0, 0]),
+        is_selected: Optional[bool] = False,
+    ):
+        super(OrganismFull, self).__init__(
+            memory=memory,
+            queue=queue,
+            address=address,
+            size=size,
+            ip=ip,
+            delta=delta,
+            start=start,
+            regs=regs,
+            stack=stack,
+            errors=errors,
+            child_size=child_size,
+            child_start=child_start,
+            is_selected=is_selected,
+        )
+
+        self.update()
+
+    def update_window(self, size, start, color):
+        new_start = start - self.memory.position
+        new_size = size + new_start.clip(max=0)
+        if (new_size > 0).all() and (self.memory.size - new_start > 0).all():
+            self.memory.window.derived(
+                new_start.clip(min=0),
+                np.minimum(new_size, self.memory.size - new_start),
+            ).background(color)
+
+    def update_ip(self):
+        new_position = self.ip - self.memory.position
+        color = COLOR['SELECTED_IP'] if self.is_selected else COLOR['IP']
+        if (
+            (new_position >= 0).all()
+            and (self.memory.size - new_position > 0).all()
+            and self.memory.is_allocated(self.ip)
+        ):
+            self.memory.window.derived(new_position, (1, 1)).background(color)
+
+    def update(self):
+        parent_color = COLOR['SELECTED_PARENT'] if self.is_selected else COLOR['PARENT']
+        self.update_window(self.size, self.start, parent_color)
+        child_color = COLOR['SELECTED_CHILD'] if self.is_selected else COLOR['CHILD']
+        self.update_window(self.child_size, self.child_start, child_color)
+        self.update_ip()
+
+    def info(self):
+        info = ''
+        info += '  errors   : {}\n'.format(self.errors)
+        info += '  ip       : {}\n'.format(list(self.ip))
+        info += '  delta    : {}\n'.format(list(self.delta))
+        for reg in self.regs:
+            info += '  r{}       : {}\n'.format(reg, list(self.regs[reg]))
+        for i in range(len(self.stack)):
+            info += '  stack[{}] : {}\n'.format(i, list(self.stack[i]))
+        for i in range(len(self.stack), self.stack_len):
+            info += '  stack[{}] : \n'.format(i)
+        return info
+
+    def kill(self):
+        super(OrganismFull, self).kill()
+        self.update()
+        self.memory.update(refresh=True)
+
+    def toogle(self, memory):
+        Organism(
+            memory=memory,
+            queue=self.queue,
+            address=None,
+            size=self.size,
+            ip=self.ip,
+            delta=self.delta,
+            start=self.start,
+            regs=self.regs,
+            stack=self.stack,
+            errors=self.errors,
+            child_size=self.child_size,
+            child_start=self.child_start,
+            is_selected=self.is_selected,
+        )

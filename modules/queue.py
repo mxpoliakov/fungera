@@ -4,6 +4,7 @@ import multiprocessing
 import numpy as np
 from modules.common import KILL_ORGANISMS_RATIO
 
+
 class Queue:
     def __init__(self):
         self.organisms = []
@@ -65,3 +66,9 @@ class Queue:
     def update_all(self):
         for organism in copy(self.organisms):
             organism.update()
+
+    def toogle_minimal(self, memory):
+        organisms = copy(self.organisms)
+        self.organisms = []
+        for organism in organisms:
+            organism.toogle(memory)

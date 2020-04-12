@@ -5,4 +5,7 @@ disable=
     missing-module-docstring,
     bad-continuation,
     broad-except,
+    invalid-name,
+    global-statement,
+    too-many-arguments,
     

@@ -1,28 +1,24 @@
 import io
 import numpy as np
-from modules.window import Window
-from modules.common import MEMORY_SIZE, INFO_SIZE, INSTRUCTION, MEMORY_FULL_RATIO
+from modules.common import (
+    screen,
+    MEMORY_SIZE,
+    INFO_SIZE,
+    INSTRUCTION,
+    MEMORY_FULL_RATIO,
+)
 
 
 class Memory:
-    def __init__(self, screen: Window):
-        self.memory_map = np.full(MEMORY_SIZE, '.', dtype=str)
-        self.allocation_map = np.zeros(MEMORY_SIZE)
-        self.minimal = False
-        screen_display_size = screen.get_size()
-        self.window = screen.derived(
-            (0, INFO_SIZE[1]),
-            (screen_display_size[0], screen_display_size[1] - INFO_SIZE[1]),
-        )
-        self.size = self.window.get_size() - np.array([1, 0])
-        self.position = MEMORY_SIZE // 2
-        self.update()
-
-    def load_genome(self, genome: np.array, address: np.array, size: np.array):
-        self.memory_map[
-            address[0] : address[0] + size[0], address[1] : address[1] + size[1]
-        ] = genome
-        self.update()
+    def __init__(
+        self,
+        memory_map=np.full(MEMORY_SIZE, '.', dtype=str),
+        allocation_map=np.zeros(MEMORY_SIZE),
+        position=MEMORY_SIZE // 2,
+    ):
+        self.memory_map = memory_map
+        self.allocation_map = allocation_map
+        self.position = position
 
     def allocate(self, address: np.array, size: np.array):
         self.allocation_map[
@@ -43,43 +39,6 @@ class Memory:
         )
         return ratio > MEMORY_FULL_RATIO
 
-    def enable_minimal(self):
-        self.minimal = not self.minimal
-        self.window.erase()
-        self.window.print('', refresh=True)
-        self.update(refresh=True)
-
-    def update(self, refresh=False):
-        if not self.minimal:
-            buffer = io.BytesIO()
-            memory_map_subset = self.memory_map[
-                self.position[0] : self.size[0] + self.position[0],
-                self.position[1] : self.size[1] + self.position[1],
-            ]
-            np.savetxt(
-                buffer, memory_map_subset, fmt='%s', delimiter='', newline='',
-            )
-            self.window.erase()
-            self.window.print(buffer.getvalue(), refresh=refresh)
-
-    def scroll(self, delta: np.array):
-        new_position = self.position + delta
-        if (new_position >= 0).all() and (
-            new_position + self.size <= MEMORY_SIZE
-        ).all():
-            self.position += delta
-
-        if (new_position < 0).any():
-            self.position = new_position.clip(min=0)
-
-        if new_position[0] + self.size[0] > MEMORY_SIZE[0]:
-            self.position[0] = MEMORY_SIZE[0] - self.size[0]
-
-        if new_position[1] + self.size[1] > MEMORY_SIZE[1]:
-            self.position[1] = MEMORY_SIZE[1] - self.size[1]
-
-        self.update(refresh=True)
-
     def inst(self, address: np.array):
         return self.memory_map[tuple(address)]
 
@@ -87,7 +46,6 @@ class Memory:
         for inst, info in INSTRUCTION.items():
             if (info[0] == inst_code).all():
                 self.memory_map[tuple(address)] = inst
-                self.update(refresh=False)
                 break
 
     def is_allocated(self, address: np.array):
@@ -109,3 +67,76 @@ class Memory:
             np.random.randint(0, MEMORY_SIZE[1]),
         )
         self.memory_map[address] = np.random.choice(list(INSTRUCTION.keys()))
+
+    def toogle(self):
+        return MemoryFull(self.memory_map, self.allocation_map, self.position)
+
+    def update(self, refresh=True):
+        pass
+
+    def clear(self):
+        pass
+
+
+class MemoryFull(Memory):
+    def __init__(
+        self,
+        memory_map=np.full(MEMORY_SIZE, '.', dtype=str),
+        allocation_map=np.zeros(MEMORY_SIZE),
+        position=MEMORY_SIZE // 2,
+    ):
+        super(MemoryFull, self).__init__(memory_map, allocation_map, position)
+        screen_display_size = screen.get_size()
+        self.window = screen.derived(
+            (0, INFO_SIZE[1]),
+            (screen_display_size[0], screen_display_size[1] - INFO_SIZE[1]),
+        )
+        self.size = self.window.get_size() - np.array([1, 0])
+        self.update()
+
+    def load_genome(self, genome: np.array, address: np.array, size: np.array):
+        self.memory_map[
+            address[0] : address[0] + size[0], address[1] : address[1] + size[1]
+        ] = genome
+        self.update()
+
+    def clear(self):
+        self.window.erase()
+        self.window.print('', refresh=True)
+
+    def update(self, refresh=False):
+        buffer = io.BytesIO()
+        memory_map_subset = self.memory_map[
+            self.position[0] : self.size[0] + self.position[0],
+            self.position[1] : self.size[1] + self.position[1],
+        ]
+        np.savetxt(
+            buffer, memory_map_subset, fmt='%s', delimiter='', newline='',
+        )
+        self.window.erase()
+        self.window.print(buffer.getvalue(), refresh=refresh)
+
+    def scroll(self, delta: np.array):
+        new_position = self.position + delta
+        if (new_position >= 0).all() and (
+            new_position + self.size <= MEMORY_SIZE
+        ).all():
+            self.position += delta
+
+        if (new_position < 0).any():
+            self.position = new_position.clip(min=0)
+
+        if new_position[0] + self.size[0] > MEMORY_SIZE[0]:
+            self.position[0] = MEMORY_SIZE[0] - self.size[0]
+
+        if new_position[1] + self.size[1] > MEMORY_SIZE[1]:
+            self.position[1] = MEMORY_SIZE[1] - self.size[1]
+
+        self.update(refresh=True)
+
+    def write_inst(self, address: np.array, inst_code: np.array):
+        super(MemoryFull, self).write_inst(address, inst_code)
+        self.update(refresh=False)
+
+    def toogle(self):
+        return Memory(self.memory_map, self.allocation_map, self.position)

@@ -1,12 +1,11 @@
 import curses
 import traceback
 import numpy as np
-from modules.window import Window
-from modules.memory import Memory
+from modules.memory import MemoryFull
 from modules.queue import Queue
-from modules.organism import Organism
+from modules.organism import OrganismFull
 from modules.common import (
-    COLOR,
+    screen,
     INFO_SIZE,
     DELTA,
     SCROLL_STEP,
@@ -16,36 +15,15 @@ from modules.common import (
 
 class Fungera:
     def __init__(self):
-        self.screen = None
-        self.init_curses()
-
         self.queue = Queue()
         self.cycle = 0
         self.running = False
         self.minimal = False
-
-        self.info_window = self.screen.derived(np.array([0, 0]), INFO_SIZE,)
-        self.memory = Memory(self.screen)
+        self.info_window = screen.derived(np.array([0, 0]), INFO_SIZE,)
+        self.memory = MemoryFull()
         genome_size = self.load_genome_into_memory('initial.gen', MEMORY_SIZE // 2)
-        Organism(self.memory, self.queue, MEMORY_SIZE // 2, genome_size)
+        OrganismFull(self.memory, self.queue, MEMORY_SIZE // 2, genome_size)
         self.update_info()
-
-    def init_curses(self):
-        self.screen = Window(curses.initscr())
-        self.screen.setup()
-
-        curses.noecho()
-        curses.cbreak()
-        curses.curs_set(0)
-
-        curses.start_color()
-        curses.use_default_colors()
-        curses.init_pair(COLOR['SELECTED_PARENT'], curses.COLOR_WHITE, 126)
-        curses.init_pair(COLOR['SELECTED_IP'], curses.COLOR_WHITE, 160)
-        curses.init_pair(COLOR['SELECTED_CHILD'], curses.COLOR_WHITE, 128)
-        curses.init_pair(COLOR['PARENT'], curses.COLOR_WHITE, 27)
-        curses.init_pair(COLOR['IP'], curses.COLOR_WHITE, 117)
-        curses.init_pair(COLOR['CHILD'], curses.COLOR_WHITE, 33)
 
     def run(self):
         try:
@@ -94,10 +72,13 @@ class Fungera:
             if self.cycle % minimal_cycle_gap == 0:
                 self.update_info_minimal()
 
-    def enable_minimal(self):
+    def toogle_minimal(self):
         self.minimal = not self.minimal
         self.update_info_minimal()
-        self.memory.enable_minimal()
+        self.memory.clear()
+        self.memory = self.memory.toogle()
+        self.memory.update(refresh=True)
+        self.queue.toogle_minimal(self.memory)
 
     def make_cycle(self):
         if self.cycle % (MEMORY_SIZE[0] / 10) == 0:
@@ -113,7 +94,7 @@ class Fungera:
 
     def input_stream(self):
         while True:
-            key = self.screen.get_key()
+            key = screen.get_key()
             if key == -1 and self.running:
                 self.make_cycle()
             elif key == ord('c') and not self.running:
@@ -137,7 +118,7 @@ class Fungera:
                 self.queue.select_previous()
                 self.update_info()
             elif key == ord('m') and self.running:
-                self.enable_minimal()
+                self.toogle_minimal()
 
 
 if __name__ == '__main__':

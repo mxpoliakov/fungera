@@ -1,4 +1,6 @@
+import curses
 import numpy as np
+from modules.window import Window
 
 INFO_SIZE = np.array([20, 30])
 MEMORY_SIZE = np.array([1000, 1000])
@@ -51,3 +53,25 @@ COLOR = {
     'CHILD': 5,
     'IP': 6,
 }
+
+
+def init_curses():
+    _screen = Window(curses.initscr())
+    _screen.setup()
+
+    curses.noecho()
+    curses.cbreak()
+    curses.curs_set(0)
+
+    curses.start_color()
+    curses.use_default_colors()
+    curses.init_pair(COLOR['SELECTED_PARENT'], curses.COLOR_WHITE, 126)
+    curses.init_pair(COLOR['SELECTED_IP'], curses.COLOR_WHITE, 160)
+    curses.init_pair(COLOR['SELECTED_CHILD'], curses.COLOR_WHITE, 128)
+    curses.init_pair(COLOR['PARENT'], curses.COLOR_WHITE, 27)
+    curses.init_pair(COLOR['IP'], curses.COLOR_WHITE, 117)
+    curses.init_pair(COLOR['CHILD'], curses.COLOR_WHITE, 33)
+    return _screen
+
+
+screen = init_curses()
