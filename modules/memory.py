@@ -2,19 +2,17 @@ import io
 import numpy as np
 from modules.common import (
     screen,
-    MEMORY_SIZE,
-    INFO_SIZE,
+    config,
     INSTRUCTION,
-    MEMORY_FULL_RATIO,
 )
 
 
 class Memory:
     def __init__(
         self,
-        memory_map=np.full(MEMORY_SIZE, '.', dtype=str),
-        allocation_map=np.zeros(MEMORY_SIZE),
-        position=MEMORY_SIZE // 2,
+        memory_map=np.full(config['memory_size'], '.', dtype=str),
+        allocation_map=np.zeros(config['memory_size']),
+        position=config['memory_size'] // 2,
     ):
         self.memory_map = memory_map
         self.allocation_map = allocation_map
@@ -37,7 +35,7 @@ class Memory:
         ratio = np.count_nonzero(self.allocation_map) / np.count_nonzero(
             self.allocation_map == 0
         )
-        return ratio > MEMORY_FULL_RATIO
+        return ratio > config['memory_full_ratio']
 
     def inst(self, address: np.array):
         return self.memory_map[tuple(address)]
@@ -54,7 +52,7 @@ class Memory:
     def is_allocated_region(self, address: np.array, size: np.array):
         if (address - size < 0).any():
             return None
-        if (address + size - MEMORY_SIZE > 0).any():
+        if (address + size - config['memory_size'] > 0).any():
             return None
         allocation_region = self.allocation_map[
             address[0] : address[0] + size[0], address[1] : address[1] + size[1]
@@ -63,8 +61,8 @@ class Memory:
 
     def cycle(self):
         address = (
-            np.random.randint(0, MEMORY_SIZE[0]),
-            np.random.randint(0, MEMORY_SIZE[1]),
+            np.random.randint(0, config['memory_size'][0]),
+            np.random.randint(0, config['memory_size'][1]),
         )
         self.memory_map[address] = np.random.choice(list(INSTRUCTION.keys()))
 
@@ -81,15 +79,18 @@ class Memory:
 class MemoryFull(Memory):
     def __init__(
         self,
-        memory_map=np.full(MEMORY_SIZE, '.', dtype=str),
-        allocation_map=np.zeros(MEMORY_SIZE),
-        position=MEMORY_SIZE // 2,
+        memory_map=np.full(config['memory_size'], '.', dtype=str),
+        allocation_map=np.zeros(config['memory_size']),
+        position=config['memory_size'] // 2,
     ):
         super(MemoryFull, self).__init__(memory_map, allocation_map, position)
         screen_display_size = screen.get_size()
         self.window = screen.derived(
-            (0, INFO_SIZE[1]),
-            (screen_display_size[0], screen_display_size[1] - INFO_SIZE[1]),
+            (0, config['info_display_size'][1]),
+            (
+                screen_display_size[0],
+                screen_display_size[1] - config['info_display_size'][1],
+            ),
         )
         self.size = self.window.get_size() - np.array([1, 0])
         self.update()
@@ -119,18 +120,18 @@ class MemoryFull(Memory):
     def scroll(self, delta: np.array):
         new_position = self.position + delta
         if (new_position >= 0).all() and (
-            new_position + self.size <= MEMORY_SIZE
+            new_position + self.size <= config['memory_size']
         ).all():
             self.position += delta
 
         if (new_position < 0).any():
             self.position = new_position.clip(min=0)
 
-        if new_position[0] + self.size[0] > MEMORY_SIZE[0]:
-            self.position[0] = MEMORY_SIZE[0] - self.size[0]
+        if new_position[0] + self.size[0] > config['memory_size'][0]:
+            self.position[0] = config['memory_size'][0] - self.size[0]
 
-        if new_position[1] + self.size[1] > MEMORY_SIZE[1]:
-            self.position[1] = MEMORY_SIZE[1] - self.size[1]
+        if new_position[1] + self.size[1] > config['memory_size'][1]:
+            self.position[1] = config['memory_size'][1] - self.size[1]
 
         self.update(refresh=True)
 

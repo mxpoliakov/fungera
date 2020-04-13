@@ -2,7 +2,7 @@ from typing import Optional
 import numpy as np
 from modules.queue import Queue
 from modules.memory import Memory
-from modules.common import COLOR, MEMORY_SIZE, INSTRUCTION, DELTA
+from modules.common import config, COLOR, INSTRUCTION, DELTA
 
 
 class RegsDict(dict):
@@ -66,7 +66,6 @@ class Organism:
         self.queue.add_organism(self)
 
         self.mods = {'x': 0, 'y': 1}
-        self.stack_len = 8
 
     def no_operation(self):
         pass
@@ -144,7 +143,7 @@ class Organism:
     def allocate_child(self):
         size = np.copy(self.regs[self.inst(1)])
         is_space_found = False
-        for i in range(2, max(MEMORY_SIZE)):
+        for i in range(2, max(config['memory_size'])):
             is_allocated_region = self.memory.is_allocated_region(
                 self.ip_offset(i), size
             )
@@ -169,7 +168,7 @@ class Organism:
             self.memory.write_inst(self.regs[self.inst(1)], self.regs[self.inst(2)])
 
     def push(self):
-        if len(self.stack) < self.stack_len:
+        if len(self.stack) < config['stack_length']:
             self.stack.append(np.copy(self.regs[self.inst(1)]))
 
     def pop(self):
@@ -198,7 +197,7 @@ class Organism:
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
-        if (new_ip < 0).any() or (new_ip - MEMORY_SIZE > 0).any():
+        if (new_ip < 0).any() or (new_ip - config['memory_size'] > 0).any():
             return None
         self.ip = np.copy(new_ip)
         return None
@@ -291,7 +290,7 @@ class OrganismFull(Organism):
             info += '  r{}       : {}\n'.format(reg, list(self.regs[reg]))
         for i in range(len(self.stack)):
             info += '  stack[{}] : {}\n'.format(i, list(self.stack[i]))
-        for i in range(len(self.stack), self.stack_len):
+        for i in range(len(self.stack), config['stack_length']):
             info += '  stack[{}] : \n'.format(i)
         return info
 

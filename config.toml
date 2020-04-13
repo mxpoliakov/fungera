@@ -1,0 +1,8 @@
+memory_size = [1000, 1000]
+info_display_size = [20, 30]
+scroll_step = 50
+kill_organisms_ratio = 0.5
+memory_full_ratio = 0.75
+cycle_gap = 10000
+random_rate = 100
+stack_length = 8

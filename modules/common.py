@@ -1,14 +1,7 @@
 import curses
+import toml
 import numpy as np
 from modules.window import Window
-
-INFO_SIZE = np.array([20, 30])
-MEMORY_SIZE = np.array([1000, 1000])
-
-SCROLL_STEP = MEMORY_SIZE // 500
-
-KILL_ORGANISMS_RATIO = 0.5
-MEMORY_FULL_RATIO = 0.75
 
 INSTRUCTION = {
     '.': [np.array([0, 0]), 'no_operation'],
@@ -74,4 +67,13 @@ def init_curses():
     return _screen
 
 
+def load_config():
+    _config = {}
+    for key, value in toml.load('config.toml').items():
+        _config[key] = np.array(value) if isinstance(value, list) else value
+    return _config
+
+
 screen = init_curses()
+
+config = load_config()

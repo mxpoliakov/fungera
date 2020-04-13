@@ -2,7 +2,7 @@ from copy import copy
 import threading
 import multiprocessing
 import numpy as np
-from modules.common import KILL_ORGANISMS_RATIO
+from modules.common import config
 
 
 class Queue:
@@ -58,7 +58,7 @@ class Queue:
 
     def kill_organisms(self):
         sorted_organisms = sorted(self.organisms, reverse=True)
-        ratio = int(len(self.organisms) * KILL_ORGANISMS_RATIO)
+        ratio = int(len(self.organisms) * config['kill_organisms_ratio'])
         for organism in sorted_organisms[:ratio]:
             organism.kill()
         self.organisms = sorted_organisms[ratio:]

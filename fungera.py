@@ -6,10 +6,8 @@ from modules.queue import Queue
 from modules.organism import OrganismFull
 from modules.common import (
     screen,
-    INFO_SIZE,
+    config,
     DELTA,
-    SCROLL_STEP,
-    MEMORY_SIZE,
 )
 
 
@@ -19,10 +17,14 @@ class Fungera:
         self.cycle = 0
         self.running = False
         self.minimal = False
-        self.info_window = screen.derived(np.array([0, 0]), INFO_SIZE,)
+        self.info_window = screen.derived(
+            np.array([0, 0]), config['info_display_size'],
+        )
         self.memory = MemoryFull()
-        genome_size = self.load_genome_into_memory('initial.gen', MEMORY_SIZE // 2)
-        OrganismFull(self.memory, self.queue, MEMORY_SIZE // 2, genome_size)
+        genome_size = self.load_genome_into_memory(
+            'initial.gen', config['memory_size'] // 2
+        )
+        OrganismFull(self.memory, self.queue, config['memory_size'] // 2, genome_size)
         self.update_info()
 
     def run(self):
@@ -68,8 +70,7 @@ class Fungera:
         if not self.minimal:
             self.update_info_full()
         else:
-            minimal_cycle_gap = 10000
-            if self.cycle % minimal_cycle_gap == 0:
+            if self.cycle % config['cycle_gap'] == 0:
                 self.update_info_minimal()
 
     def toogle_minimal(self):
@@ -81,9 +82,9 @@ class Fungera:
         self.queue.toogle_minimal(self.memory)
 
     def make_cycle(self):
-        if self.cycle % (MEMORY_SIZE[0] / 10) == 0:
+        if self.cycle % config['random_rate'] == 0:
             self.memory.cycle()
-        if self.cycle % (MEMORY_SIZE[0] * 100) == 0:
+        if self.cycle % config['cycle_gap'] == 0:
             if self.memory.is_time_to_kill():
                 self.queue.kill_organisms()
         self.queue.cycle_all()
@@ -104,13 +105,13 @@ class Fungera:
                 if self.minimal:
                     self.update_info_minimal()
             elif key == curses.KEY_DOWN and not self.minimal:
-                self.update_position(SCROLL_STEP * DELTA['DOWN'])
+                self.update_position(config['scroll_step'] * DELTA['DOWN'])
             elif key == curses.KEY_UP and not self.minimal:
-                self.update_position(SCROLL_STEP * DELTA['UP'])
+                self.update_position(config['scroll_step'] * DELTA['UP'])
             elif key == curses.KEY_RIGHT and not self.minimal:
-                self.update_position(SCROLL_STEP * DELTA['RIGHT'])
+                self.update_position(config['scroll_step'] * DELTA['RIGHT'])
             elif key == curses.KEY_LEFT and not self.minimal:
-                self.update_position(SCROLL_STEP * DELTA['LEFT'])
+                self.update_position(config['scroll_step'] * DELTA['LEFT'])
             elif key == ord('d') and not self.minimal:
                 self.queue.select_next()
                 self.update_info()
