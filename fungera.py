@@ -5,11 +5,7 @@ import numpy as np
 from modules.memory import MemoryFull
 from modules.queue import Queue
 from modules.organism import OrganismFull
-from modules.common import (
-    screen,
-    config,
-    deltas,
-)
+from modules.common import screen, config, deltas
 
 
 class Fungera:

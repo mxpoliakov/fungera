@@ -1,10 +1,6 @@
 import io
 import numpy as np
-from modules.common import (
-    screen,
-    config,
-    instructions,
-)
+from modules.common import screen, config, instructions
 
 
 class Memory:
