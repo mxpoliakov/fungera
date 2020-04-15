@@ -8,7 +8,7 @@ from modules.organism import OrganismFull
 from modules.common import (
     screen,
     config,
-    DELTA,
+    deltas,
 )
 
 
@@ -83,8 +83,10 @@ class Fungera:
         self.queue.toogle_minimal(self.memory)
 
     def save_state(self):
+        return_to_full = False
         if not self.minimal:
             self.toogle_minimal()
+            return_to_full = True
         with open(config['state_to_save'], 'wb') as f:
             state = {
                 'cycle': self.cycle,
@@ -92,12 +94,14 @@ class Fungera:
                 'queue': self.queue,
             }
             pickle.dump(state, f)
-        if not self.minimal:
+        if not self.minimal or return_to_full:
             self.toogle_minimal()
 
     def load_state(self):
+        return_to_full = False
         if not self.minimal:
             self.toogle_minimal()
+            return_to_full = True
         try:
             with open(config['state_to_load'], 'rb') as f:
                 state = pickle.load(f)
@@ -106,7 +110,7 @@ class Fungera:
                 self.cycle = state['cycle']
         except Exception:
             pass
-        if not self.minimal:
+        if not self.minimal or return_to_full:
             self.toogle_minimal(memory)
         else:
             self.memory = memory
@@ -136,13 +140,13 @@ class Fungera:
                 if self.minimal:
                     self.update_info_minimal()
             elif key == curses.KEY_DOWN and not self.minimal:
-                self.update_position(config['scroll_step'] * DELTA['DOWN'])
+                self.update_position(config['scroll_step'] * deltas['down'])
             elif key == curses.KEY_UP and not self.minimal:
-                self.update_position(config['scroll_step'] * DELTA['UP'])
+                self.update_position(config['scroll_step'] * deltas['up'])
             elif key == curses.KEY_RIGHT and not self.minimal:
-                self.update_position(config['scroll_step'] * DELTA['RIGHT'])
+                self.update_position(config['scroll_step'] * deltas['right'])
             elif key == curses.KEY_LEFT and not self.minimal:
-                self.update_position(config['scroll_step'] * DELTA['LEFT'])
+                self.update_position(config['scroll_step'] * deltas['left'])
             elif key == ord('d') and not self.minimal:
                 self.queue.select_next()
                 self.update_info()

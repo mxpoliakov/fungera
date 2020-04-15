@@ -2,7 +2,7 @@ from typing import Optional
 import numpy as np
 from modules.queue import Queue
 from modules.memory import Memory
-from modules.common import config, COLOR, INSTRUCTION, DELTA
+from modules.common import config, colors, instructions, deltas
 
 
 class RegsDict(dict):
@@ -73,16 +73,16 @@ class Organism:
         pass
 
     def move_up(self):
-        self.delta = DELTA['UP']
+        self.delta = deltas['up']
 
     def move_down(self):
-        self.delta = DELTA['DOWN']
+        self.delta = deltas['down']
 
     def move_right(self):
-        self.delta = DELTA['RIGHT']
+        self.delta = deltas['right']
 
     def move_left(self):
-        self.delta = DELTA['LEFT']
+        self.delta = deltas['left']
 
     def ip_offset(self, offset: int = 0) -> np.array:
         return self.ip + offset * self.delta
@@ -161,7 +161,7 @@ class Organism:
             self.memory.allocate(self.child_start, self.child_size)
 
     def load_inst(self):
-        self.regs[self.inst(2)] = INSTRUCTION[
+        self.regs[self.inst(2)] = instructions[
             self.memory.inst(self.regs[self.inst(1)])
         ][0]
 
@@ -195,7 +195,7 @@ class Organism:
 
     def cycle(self):
         try:
-            getattr(self, INSTRUCTION[self.inst()][1])()
+            getattr(self, instructions[self.inst()][1])()
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
@@ -268,7 +268,7 @@ class OrganismFull(Organism):
 
     def update_ip(self):
         new_position = self.ip - self.memory.position
-        color = COLOR['SELECTED_IP'] if self.is_selected else COLOR['IP']
+        color = colors['ip_bold'] if self.is_selected else colors['ip_bold']
         if (
             (new_position >= 0).all()
             and (self.memory.size - new_position > 0).all()
@@ -277,9 +277,9 @@ class OrganismFull(Organism):
             self.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
-        parent_color = COLOR['SELECTED_PARENT'] if self.is_selected else COLOR['PARENT']
+        parent_color = colors['parent_bold'] if self.is_selected else colors['parent']
         self.update_window(self.size, self.start, parent_color)
-        child_color = COLOR['SELECTED_CHILD'] if self.is_selected else COLOR['CHILD']
+        child_color = colors['child_bold'] if self.is_selected else colors['child']
         self.update_window(self.child_size, self.child_start, child_color)
         self.update_ip()
 

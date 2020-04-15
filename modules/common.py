@@ -3,7 +3,7 @@ import toml
 import numpy as np
 from modules.window import Window
 
-INSTRUCTION = {
+instructions = {
     '.': [np.array([0, 0]), 'no_operation'],
     ':': [np.array([0, 1]), 'no_operation'],
     'a': [np.array([1, 0]), 'no_operation'],
@@ -31,20 +31,20 @@ INSTRUCTION = {
     'P': [np.array([8, 1]), 'pop'],
 }
 
-DELTA = {
-    'LEFT': np.array([0, -1]),
-    'RIGHT': np.array([0, 1]),
-    'UP': np.array([-1, 0]),
-    'DOWN': np.array([1, 0]),
+deltas = {
+    'left': np.array([0, -1]),
+    'right': np.array([0, 1]),
+    'up': np.array([-1, 0]),
+    'down': np.array([1, 0]),
 }
 
-COLOR = {
-    'SELECTED_PARENT': 1,
-    'SELECTED_CHILD': 2,
-    'SELECTED_IP': 3,
-    'PARENT': 4,
-    'CHILD': 5,
-    'IP': 6,
+colors = {
+    'parent_bold': 1,
+    'child_bold': 2,
+    'ip_bold': 3,
+    'parent': 4,
+    'child': 5,
+    'ip': 6,
 }
 
 
@@ -58,12 +58,12 @@ def init_curses():
 
     curses.start_color()
     curses.use_default_colors()
-    curses.init_pair(COLOR['SELECTED_PARENT'], curses.COLOR_WHITE, 126)
-    curses.init_pair(COLOR['SELECTED_IP'], curses.COLOR_WHITE, 160)
-    curses.init_pair(COLOR['SELECTED_CHILD'], curses.COLOR_WHITE, 128)
-    curses.init_pair(COLOR['PARENT'], curses.COLOR_WHITE, 27)
-    curses.init_pair(COLOR['IP'], curses.COLOR_WHITE, 117)
-    curses.init_pair(COLOR['CHILD'], curses.COLOR_WHITE, 33)
+    curses.init_pair(colors['parent_bold'], curses.COLOR_WHITE, 126)
+    curses.init_pair(colors['ip_bold'], curses.COLOR_WHITE, 160)
+    curses.init_pair(colors['child_bold'], curses.COLOR_WHITE, 128)
+    curses.init_pair(colors['parent'], curses.COLOR_WHITE, 27)
+    curses.init_pair(colors['ip'], curses.COLOR_WHITE, 117)
+    curses.init_pair(colors['child'], curses.COLOR_WHITE, 33)
     return _screen
 
 

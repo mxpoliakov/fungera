@@ -3,7 +3,7 @@ import numpy as np
 from modules.common import (
     screen,
     config,
-    INSTRUCTION,
+    instructions,
 )
 
 
@@ -41,7 +41,7 @@ class Memory:
         return self.memory_map[tuple(address)]
 
     def write_inst(self, address: np.array, inst_code: np.array):
-        for inst, info in INSTRUCTION.items():
+        for inst, info in instructions.items():
             if (info[0] == inst_code).all():
                 self.memory_map[tuple(address)] = inst
                 break
@@ -64,7 +64,7 @@ class Memory:
             np.random.randint(0, config['memory_size'][0]),
             np.random.randint(0, config['memory_size'][1]),
         )
-        self.memory_map[address] = np.random.choice(list(INSTRUCTION.keys()))
+        self.memory_map[address] = np.random.choice(list(instructions.keys()))
 
     def toogle(self):
         return MemoryFull(self.memory_map, self.allocation_map, self.position)
