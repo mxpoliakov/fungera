@@ -74,6 +74,8 @@ def load_config():
     return _config
 
 
+is_running = False
+
 screen = init_curses()
 
 config = load_config()

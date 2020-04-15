@@ -1,14 +1,14 @@
 import io
 import numpy as np
-from modules.common import screen, config, instructions
+import modules.common as c
 
 
 class Memory:
     def __init__(
         self,
-        memory_map=np.full(config['memory_size'], '.', dtype=str),
-        allocation_map=np.zeros(config['memory_size']),
-        position=config['memory_size'] // 2,
+        memory_map=np.full(c.config['memory_size'], '.', dtype=str),
+        allocation_map=np.zeros(c.config['memory_size']),
+        position=c.config['memory_size'] // 2,
     ):
         self.memory_map = memory_map
         self.allocation_map = allocation_map
@@ -31,13 +31,13 @@ class Memory:
         ratio = np.count_nonzero(self.allocation_map) / np.count_nonzero(
             self.allocation_map == 0
         )
-        return ratio > config['memory_full_ratio']
+        return ratio > c.config['memory_full_ratio']
 
     def inst(self, address: np.array):
         return self.memory_map[tuple(address)]
 
     def write_inst(self, address: np.array, inst_code: np.array):
-        for inst, info in instructions.items():
+        for inst, info in c.instructions.items():
             if (info[0] == inst_code).all():
                 self.memory_map[tuple(address)] = inst
                 break
@@ -48,7 +48,7 @@ class Memory:
     def is_allocated_region(self, address: np.array, size: np.array):
         if (address - size < 0).any():
             return None
-        if (address + size - config['memory_size'] > 0).any():
+        if (address + size - c.config['memory_size'] > 0).any():
             return None
         allocation_region = self.allocation_map[
             address[0] : address[0] + size[0], address[1] : address[1] + size[1]
@@ -57,10 +57,10 @@ class Memory:
 
     def cycle(self):
         address = (
-            np.random.randint(0, config['memory_size'][0]),
-            np.random.randint(0, config['memory_size'][1]),
+            np.random.randint(0, c.config['memory_size'][0]),
+            np.random.randint(0, c.config['memory_size'][1]),
         )
-        self.memory_map[address] = np.random.choice(list(instructions.keys()))
+        self.memory_map[address] = np.random.choice(list(c.instructions.keys()))
 
     def toogle(self):
         return MemoryFull(self.memory_map, self.allocation_map, self.position)
@@ -75,17 +75,17 @@ class Memory:
 class MemoryFull(Memory):
     def __init__(
         self,
-        memory_map=np.full(config['memory_size'], '.', dtype=str),
-        allocation_map=np.zeros(config['memory_size']),
-        position=config['memory_size'] // 2,
+        memory_map=np.full(c.config['memory_size'], '.', dtype=str),
+        allocation_map=np.zeros(c.config['memory_size']),
+        position=c.config['memory_size'] // 2,
     ):
         super(MemoryFull, self).__init__(memory_map, allocation_map, position)
-        screen_display_size = screen.get_size()
-        self.window = screen.derived(
-            (0, config['info_display_size'][1]),
+        screen_display_size = c.screen.get_size()
+        self.window = c.screen.derived(
+            (0, c.config['info_display_size'][1]),
             (
                 screen_display_size[0],
-                screen_display_size[1] - config['info_display_size'][1],
+                screen_display_size[1] - c.config['info_display_size'][1],
             ),
         )
         self.size = self.window.get_size() - np.array([1, 0])
@@ -116,18 +116,18 @@ class MemoryFull(Memory):
     def scroll(self, delta: np.array):
         new_position = self.position + delta
         if (new_position >= 0).all() and (
-            new_position + self.size <= config['memory_size']
+            new_position + self.size <= c.config['memory_size']
         ).all():
             self.position += delta
 
         if (new_position < 0).any():
             self.position = new_position.clip(min=0)
 
-        if new_position[0] + self.size[0] > config['memory_size'][0]:
-            self.position[0] = config['memory_size'][0] - self.size[0]
+        if new_position[0] + self.size[0] > c.config['memory_size'][0]:
+            self.position[0] = c.config['memory_size'][0] - self.size[0]
 
-        if new_position[1] + self.size[1] > config['memory_size'][1]:
-            self.position[1] = config['memory_size'][1] - self.size[1]
+        if new_position[1] + self.size[1] > c.config['memory_size'][1]:
+            self.position[1] = c.config['memory_size'][1] - self.size[1]
 
         self.update(refresh=True)
 

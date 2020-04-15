@@ -1,8 +1,8 @@
 from typing import Optional
 import numpy as np
+import modules.common as c
 from modules.queue import Queue
 from modules.memory import Memory
-from modules.common import config, colors, instructions, deltas
 
 
 class RegsDict(dict):
@@ -73,16 +73,16 @@ class Organism:
         pass
 
     def move_up(self):
-        self.delta = deltas['up']
+        self.delta = c.deltas['up']
 
     def move_down(self):
-        self.delta = deltas['down']
+        self.delta = c.deltas['down']
 
     def move_right(self):
-        self.delta = deltas['right']
+        self.delta = c.deltas['right']
 
     def move_left(self):
-        self.delta = deltas['left']
+        self.delta = c.deltas['left']
 
     def ip_offset(self, offset: int = 0) -> np.array:
         return self.ip + offset * self.delta
@@ -145,7 +145,7 @@ class Organism:
     def allocate_child(self):
         size = np.copy(self.regs[self.inst(1)])
         is_space_found = False
-        for i in range(2, max(config['memory_size'])):
+        for i in range(2, max(c.config['memory_size'])):
             is_allocated_region = self.memory.is_allocated_region(
                 self.ip_offset(i), size
             )
@@ -161,7 +161,7 @@ class Organism:
             self.memory.allocate(self.child_start, self.child_size)
 
     def load_inst(self):
-        self.regs[self.inst(2)] = instructions[
+        self.regs[self.inst(2)] = c.instructions[
             self.memory.inst(self.regs[self.inst(1)])
         ][0]
 
@@ -170,7 +170,7 @@ class Organism:
             self.memory.write_inst(self.regs[self.inst(1)], self.regs[self.inst(2)])
 
     def push(self):
-        if len(self.stack) < config['stack_length']:
+        if len(self.stack) < c.config['stack_length']:
             self.stack.append(np.copy(self.regs[self.inst(1)]))
 
     def pop(self):
@@ -195,11 +195,11 @@ class Organism:
 
     def cycle(self):
         try:
-            getattr(self, instructions[self.inst()][1])()
+            getattr(self, c.instructions[self.inst()][1])()
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
-        if (new_ip < 0).any() or (new_ip - config['memory_size'] > 0).any():
+        if (new_ip < 0).any() or (new_ip - c.config['memory_size'] > 0).any():
             return None
         self.ip = np.copy(new_ip)
         return None
@@ -268,7 +268,7 @@ class OrganismFull(Organism):
 
     def update_ip(self):
         new_position = self.ip - self.memory.position
-        color = colors['ip_bold'] if self.is_selected else colors['ip_bold']
+        color = c.colors['ip_bold'] if self.is_selected else c.colors['ip_bold']
         if (
             (new_position >= 0).all()
             and (self.memory.size - new_position > 0).all()
@@ -277,9 +277,11 @@ class OrganismFull(Organism):
             self.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
-        parent_color = colors['parent_bold'] if self.is_selected else colors['parent']
+        parent_color = (
+            c.colors['parent_bold'] if self.is_selected else c.colors['parent']
+        )
         self.update_window(self.size, self.start, parent_color)
-        child_color = colors['child_bold'] if self.is_selected else colors['child']
+        child_color = c.colors['child_bold'] if self.is_selected else c.colors['child']
         self.update_window(self.child_size, self.child_start, child_color)
         self.update_ip()
 
@@ -292,7 +294,7 @@ class OrganismFull(Organism):
             info += '  r{}       : {}\n'.format(reg, list(self.regs[reg]))
         for i in range(len(self.stack)):
             info += '  stack[{}] : {}\n'.format(i, list(self.stack[i]))
-        for i in range(len(self.stack), config['stack_length']):
+        for i in range(len(self.stack), c.config['stack_length']):
             info += '  stack[{}] : \n'.format(i)
         return info
 
