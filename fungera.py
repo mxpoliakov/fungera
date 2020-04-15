@@ -1,4 +1,5 @@
 import curses
+import pickle
 import traceback
 import numpy as np
 from modules.memory import MemoryFull
@@ -73,13 +74,43 @@ class Fungera:
             if self.cycle % config['cycle_gap'] == 0:
                 self.update_info_minimal()
 
-    def toogle_minimal(self):
+    def toogle_minimal(self, memory=None):
         self.minimal = not self.minimal
         self.update_info_minimal()
         self.memory.clear()
-        self.memory = self.memory.toogle()
+        self.memory = self.memory.toogle() if memory is None else memory.toogle()
         self.memory.update(refresh=True)
         self.queue.toogle_minimal(self.memory)
+
+    def save_state(self):
+        if not self.minimal:
+            self.toogle_minimal()
+        with open(config['state_to_save'], 'wb') as f:
+            state = {
+                'cycle': self.cycle,
+                'memory': self.memory,
+                'queue': self.queue,
+            }
+            pickle.dump(state, f)
+        if not self.minimal:
+            self.toogle_minimal()
+
+    def load_state(self):
+        if not self.minimal:
+            self.toogle_minimal()
+        try:
+            with open(config['state_to_load'], 'rb') as f:
+                state = pickle.load(f)
+                memory = state['memory']
+                self.queue = state['queue']
+                self.cycle = state['cycle']
+        except Exception:
+            pass
+        if not self.minimal:
+            self.toogle_minimal(memory)
+        else:
+            self.memory = memory
+            self.update_info_minimal()
 
     def make_cycle(self):
         if self.cycle % config['random_rate'] == 0:
@@ -120,6 +151,10 @@ class Fungera:
                 self.update_info()
             elif key == ord('m') and self.running:
                 self.toogle_minimal()
+            elif key == ord('p') and self.running:
+                self.save_state()
+            elif key == ord('l') and self.running:
+                self.load_state()
 
 
 if __name__ == '__main__':

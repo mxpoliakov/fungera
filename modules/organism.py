@@ -6,8 +6,10 @@ from modules.common import config, COLOR, INSTRUCTION, DELTA
 
 
 class RegsDict(dict):
+    allowed_keys = ['a', 'b', 'c', 'd']
+
     def __setitem__(self, key, value):
-        if key not in self:
+        if key not in self.allowed_keys:
             raise ValueError
         super().__setitem__(key, value)
 
