@@ -1,7 +1,7 @@
 import curses
 import toml
 import numpy as np
-from modules.window import Window
+import modules.window as w
 
 instructions = {
     '.': [np.array([0, 0]), 'no_operation'],
@@ -49,7 +49,7 @@ colors = {
 
 
 def init_curses():
-    _screen = Window(curses.initscr())
+    _screen = w.Window(curses.initscr())
     _screen.setup()
 
     curses.noecho()

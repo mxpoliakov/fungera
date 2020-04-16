@@ -137,3 +137,6 @@ class MemoryFull(Memory):
 
     def toogle(self):
         return Memory(self.memory_map, self.allocation_map, self.position)
+
+
+memory = MemoryFull()

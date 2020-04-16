@@ -1,8 +1,8 @@
 from typing import Optional
 import numpy as np
 import modules.common as c
-from modules.queue import Queue
-from modules.memory import Memory
+import modules.memory as m
+import modules.queue as q
 
 
 class RegsDict(dict):
@@ -17,8 +17,6 @@ class RegsDict(dict):
 class Organism:
     def __init__(
         self,
-        memory: Memory,
-        queue: Queue,
         address: np.array,
         size: np.array,
         ip: Optional[np.array] = None,
@@ -60,12 +58,10 @@ class Organism:
 
         self.is_selected = is_selected
 
-        self.memory = memory
         if address is not None:
-            self.memory.allocate(address, size)
+            m.memory.allocate(address, size)
 
-        self.queue = queue
-        self.queue.add_organism(self)
+        q.queue.add_organism(self)
 
         self.mods = {'x': 0, 'y': 1}
 
@@ -88,7 +84,7 @@ class Organism:
         return self.ip + offset * self.delta
 
     def inst(self, offset: int = 0) -> str:
-        return self.memory.inst(self.ip_offset(offset))
+        return m.memory.inst(self.ip_offset(offset))
 
     def find_template(self):
         register = self.inst(1)
@@ -146,9 +142,7 @@ class Organism:
         size = np.copy(self.regs[self.inst(1)])
         is_space_found = False
         for i in range(2, max(c.config['memory_size'])):
-            is_allocated_region = self.memory.is_allocated_region(
-                self.ip_offset(i), size
-            )
+            is_allocated_region = m.memory.is_allocated_region(self.ip_offset(i), size)
             if is_allocated_region is None:
                 break
             if not is_allocated_region:
@@ -158,16 +152,16 @@ class Organism:
                 break
         if is_space_found:
             self.child_size = np.copy(self.regs[self.inst(1)])
-            self.memory.allocate(self.child_start, self.child_size)
+            m.memory.allocate(self.child_start, self.child_size)
 
     def load_inst(self):
         self.regs[self.inst(2)] = c.instructions[
-            self.memory.inst(self.regs[self.inst(1)])
+            m.memory.inst(self.regs[self.inst(1)])
         ][0]
 
     def write_inst(self):
         if not np.array_equal(self.child_size, np.array([0, 0])):
-            self.memory.write_inst(self.regs[self.inst(1)], self.regs[self.inst(2)])
+            m.memory.write_inst(self.regs[self.inst(1)], self.regs[self.inst(2)])
 
     def push(self):
         if len(self.stack) < c.config['stack_length']:
@@ -178,8 +172,8 @@ class Organism:
 
     def split_child(self):
         if not np.array_equal(self.child_size, np.array([0, 0])):
-            self.memory.deallocate(self.child_start, self.child_size)
-            self.__class__(self.memory, self.queue, self.child_start, self.child_size)
+            m.memory.deallocate(self.child_start, self.child_size)
+            self.__class__(self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
 
@@ -187,10 +181,10 @@ class Organism:
         return self.errors < other.errors
 
     def kill(self):
-        self.memory.deallocate(self.start, self.size)
+        m.memory.deallocate(self.start, self.size)
         self.size = np.array([0, 0])
         if not np.array_equal(self.child_size, np.array([0, 0])):
-            self.memory.deallocate(self.child_start, self.child_size)
+            m.memory.deallocate(self.child_start, self.child_size)
         self.child_size = np.array([0, 0])
 
     def cycle(self):
@@ -204,10 +198,8 @@ class Organism:
         self.ip = np.copy(new_ip)
         return None
 
-    def toogle(self, memory):
+    def toogle(self):
         OrganismFull(
-            memory=memory,
-            queue=self.queue,
             address=None,
             size=self.size,
             ip=self.ip,
@@ -225,8 +217,6 @@ class Organism:
 class OrganismFull(Organism):
     def __init__(
         self,
-        memory: Memory,
-        queue: Queue,
         address: np.array,
         size: np.array,
         ip: Optional[np.array] = None,
@@ -240,8 +230,6 @@ class OrganismFull(Organism):
         is_selected: Optional[bool] = False,
     ):
         super(OrganismFull, self).__init__(
-            memory=memory,
-            queue=queue,
             address=address,
             size=size,
             ip=ip,
@@ -258,23 +246,22 @@ class OrganismFull(Organism):
         self.update()
 
     def update_window(self, size, start, color):
-        new_start = start - self.memory.position
+        new_start = start - m.memory.position
         new_size = size + new_start.clip(max=0)
-        if (new_size > 0).all() and (self.memory.size - new_start > 0).all():
-            self.memory.window.derived(
-                new_start.clip(min=0),
-                np.minimum(new_size, self.memory.size - new_start),
+        if (new_size > 0).all() and (m.memory.size - new_start > 0).all():
+            m.memory.window.derived(
+                new_start.clip(min=0), np.minimum(new_size, m.memory.size - new_start),
             ).background(color)
 
     def update_ip(self):
-        new_position = self.ip - self.memory.position
+        new_position = self.ip - m.memory.position
         color = c.colors['ip_bold'] if self.is_selected else c.colors['ip_bold']
         if (
             (new_position >= 0).all()
-            and (self.memory.size - new_position > 0).all()
-            and self.memory.is_allocated(self.ip)
+            and (m.memory.size - new_position > 0).all()
+            and m.memory.is_allocated(self.ip)
         ):
-            self.memory.window.derived(new_position, (1, 1)).background(color)
+            m.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
         parent_color = (
@@ -301,12 +288,10 @@ class OrganismFull(Organism):
     def kill(self):
         super(OrganismFull, self).kill()
         self.update()
-        self.memory.update(refresh=True)
+        m.memory.update(refresh=True)
 
-    def toogle(self, memory):
+    def toogle(self):
         Organism(
-            memory=memory,
-            queue=self.queue,
             address=None,
             size=self.size,
             ip=self.ip,

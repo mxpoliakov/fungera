@@ -53,8 +53,11 @@ class Queue:
         for organism in self.organisms:
             organism.update()
 
-    def toogle_minimal(self, memory):
+    def toogle_minimal(self):
         organisms = self.organisms
         self.organisms = []
         for organism in organisms:
-            organism.toogle(memory)
+            organism.toogle()
+
+
+queue = Queue()
