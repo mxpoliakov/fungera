@@ -128,6 +128,11 @@ class Fungera:
                 c.is_running = not c.is_running
                 if self.is_minimal:
                     self.update_info_minimal()
+            elif key == ord('c') and not c.is_running:
+                c.is_running = not c.is_running
+                self.make_cycle()
+                q.queue.cycle_all()
+                c.is_running = not c.is_running
             elif key == curses.KEY_DOWN and not self.is_minimal:
                 self.update_position(c.config['scroll_step'] * c.deltas['down'])
             elif key == curses.KEY_UP and not self.is_minimal:
@@ -142,7 +147,7 @@ class Fungera:
             elif key == ord('a') and not self.is_minimal:
                 q.queue.select_previous()
                 self.update_info()
-            elif key == ord('m') and c.is_running:
+            elif key == ord('m'):
                 self.toogle_minimal()
             elif key == ord('p'):
                 self.save_state()
@@ -150,12 +155,9 @@ class Fungera:
                 self.load_state()
             elif key == ord('k'):
                 q.queue.kill_organisms()
-
-            self.make_cycle()
-            if not self.is_minimal:
+            elif key == -1:
+                self.make_cycle()
                 q.queue.cycle_all()
-            else:
-                q.queue.cycle_all_multi()
 
 
 if __name__ == '__main__':

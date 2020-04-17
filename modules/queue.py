@@ -39,9 +39,6 @@ class Queue:
             for organism in self.organisms:
                 organism.cycle()
 
-    def cycle_all_multi(self):
-        self.cycle_all()
-
     def kill_organisms(self):
         sorted_organisms = sorted(self.organisms, reverse=True)
         ratio = int(len(self.organisms) * c.config['kill_organisms_ratio'])
