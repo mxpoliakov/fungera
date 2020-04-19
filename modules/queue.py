@@ -16,6 +16,8 @@ class Queue:
         try:
             return self.organisms[self.index]
         except IndexError:
+            if len(self.organisms) == 0:
+                raise Exception('No more organisms alive!')
             return self.organisms[0]
 
     def select_next(self):

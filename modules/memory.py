@@ -139,4 +139,5 @@ class MemoryFull(Memory):
         return Memory(self.memory_map, self.allocation_map, self.position)
 
 
-memory = MemoryFull()
+if c.screen is not None:
+    memory = MemoryFull()

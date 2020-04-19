@@ -193,6 +193,9 @@ class Organism:
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
+        if self.errors > c.config['organism_death_rate']:
+            q.queue.organisms.remove(self)
+            self.kill()
         if (new_ip < 0).any() or (new_ip - c.config['memory_size'] > 0).any():
             return None
         self.ip = np.copy(new_ip)
@@ -264,13 +267,18 @@ class OrganismFull(Organism):
             m.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
-        parent_color = (
-            c.colors['parent_bold'] if self.is_selected else c.colors['parent']
-        )
-        self.update_window(self.size, self.start, parent_color)
-        child_color = c.colors['child_bold'] if self.is_selected else c.colors['child']
-        self.update_window(self.child_size, self.child_start, child_color)
-        self.update_ip()
+        try:
+            parent_color = (
+                c.colors['parent_bold'] if self.is_selected else c.colors['parent']
+            )
+            self.update_window(self.size, self.start, parent_color)
+            child_color = (
+                c.colors['child_bold'] if self.is_selected else c.colors['child']
+            )
+            self.update_window(self.child_size, self.child_start, child_color)
+            self.update_ip()
+        except Exception:
+            pass
 
     def info(self):
         info = ''

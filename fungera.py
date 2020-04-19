@@ -1,6 +1,8 @@
 import curses
 import pickle
 import traceback
+import glob
+import os
 import numpy as np
 import modules.common as c
 import modules.memory as m
@@ -10,8 +12,13 @@ import modules.organism as o
 
 class Fungera:
     def __init__(self):
+        self.timer = c.RepeatedTimer(c.config['autosave_rate'], self.save_state)
+        np.random.seed(c.config['random_seed'])
+        if not os.path.exists('snapshots'):
+            os.makedirs('snapshots')
         self.cycle = 0
         self.is_minimal = False
+        self.purges = 0
         self.info_window = c.screen.derived(
             np.array([0, 0]), c.config['info_display_size'],
         )
@@ -26,8 +33,10 @@ class Fungera:
             self.input_stream()
         except KeyboardInterrupt:
             curses.endwin()
+            self.timer.stop()
         except Exception:
             curses.endwin()
+            self.timer.stop()
             print(traceback.format_exc())
 
     def load_genome_into_memory(self, filename: str, address: np.array) -> np.array:
@@ -47,6 +56,7 @@ class Fungera:
         info += 'Cycle      : {}\n'.format(self.cycle)
         info += 'Position   : {}\n'.format(list(m.memory.position))
         info += 'Total      : {}\n'.format(len(q.queue.organisms))
+        info += 'Purges     : {}\n'.format(self.purges)
         info += 'Organism   : {}\n'.format(q.queue.index)
         info += q.queue.get_organism().info()
         self.info_window.print(info)
@@ -80,7 +90,10 @@ class Fungera:
         if not self.is_minimal:
             self.toogle_minimal()
             return_to_full = True
-        with open(c.config['state_to_save'], 'wb') as f:
+        filename = 'snapshots/{}_cycle_{}.snapshot'.format(
+            c.config['simulation_name'].lower().replace(' ', '_'), self.cycle
+        )
+        with open(filename, 'wb') as f:
             state = {
                 'cycle': self.cycle,
                 'memory': m.memory,
@@ -96,7 +109,11 @@ class Fungera:
             self.toogle_minimal()
             return_to_full = True
         try:
-            with open(c.config['state_to_load'], 'rb') as f:
+            if c.config['snapshot_to_load'] == 'last':
+                filename = max(glob.glob('snapshots/*'), key=os.path.getctime)
+            else:
+                filename = c.config['snapshot_to_load']
+            with open(filename, 'rb') as f:
                 state = pickle.load(f)
                 memory = state['memory']
                 q.queue = state['queue']
@@ -116,6 +133,9 @@ class Fungera:
             if self.cycle % c.config['cycle_gap'] == 0:
                 if m.memory.is_time_to_kill():
                     q.queue.kill_organisms()
+                    self.purges += 1
+            # if self.cycle % c.config['autosave_rate'] == 0:
+            #    self.save_state()
             if not self.is_minimal:
                 q.queue.update_all()
             self.cycle += 1
