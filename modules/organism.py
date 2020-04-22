@@ -28,6 +28,8 @@ class Organism:
         child_size: Optional[np.array] = np.array([0, 0]),
         child_start: Optional[np.array] = np.array([0, 0]),
         is_selected: Optional[bool] = False,
+        children: Optional[int] = 0,
+        reproduction_cycle: Optional[int] = 0,
     ):
         # pylint: disable=invalid-name
         self.ip = np.array(address) if ip is None and address is not None else ip
@@ -60,6 +62,9 @@ class Organism:
 
         if address is not None:
             m.memory.allocate(address, size)
+
+        self.reproduction_cycle = reproduction_cycle
+        self.children = children
 
         q.queue.add_organism(self)
 
@@ -140,6 +145,8 @@ class Organism:
 
     def allocate_child(self):
         size = np.copy(self.regs[self.inst(1)])
+        if (size <= 0).any():
+            return
         is_space_found = False
         for i in range(2, max(c.config['memory_size'])):
             is_allocated_region = m.memory.is_allocated_region(self.ip_offset(i), size)
@@ -174,6 +181,8 @@ class Organism:
         if not np.array_equal(self.child_size, np.array([0, 0])):
             m.memory.deallocate(self.child_start, self.child_size)
             self.__class__(self.child_start, self.child_size)
+            self.children += 1
+            self.reproduction_cycle = 0
         self.child_size = np.array([0, 0])
         self.child_start = np.array([0, 0])
 
@@ -193,13 +202,20 @@ class Organism:
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
-        if self.errors > c.config['organism_death_rate']:
+        self.reproduction_cycle += 1
+        if (
+            self.errors > c.config['organism_death_rate']
+            or self.reproduction_cycle > c.config['kill_if_no_child']
+        ):
             q.queue.organisms.remove(self)
             self.kill()
         if (new_ip < 0).any() or (new_ip - c.config['memory_size'] > 0).any():
             return None
         self.ip = np.copy(new_ip)
         return None
+
+    def update(self):
+        pass
 
     def toogle(self):
         OrganismFull(
@@ -214,6 +230,8 @@ class Organism:
             child_size=self.child_size,
             child_start=self.child_start,
             is_selected=self.is_selected,
+            children=self.children,
+            reproduction_cycle=self.reproduction_cycle,
         )
 
 
@@ -231,6 +249,8 @@ class OrganismFull(Organism):
         child_size: Optional[np.array] = np.array([0, 0]),
         child_start: Optional[np.array] = np.array([0, 0]),
         is_selected: Optional[bool] = False,
+        children: Optional[int] = 0,
+        reproduction_cycle: Optional[int] = 0,
     ):
         super(OrganismFull, self).__init__(
             address=address,
@@ -244,6 +264,8 @@ class OrganismFull(Organism):
             child_size=child_size,
             child_start=child_start,
             is_selected=is_selected,
+            children=children,
+            reproduction_cycle=reproduction_cycle,
         )
 
         self.update()
@@ -253,12 +275,13 @@ class OrganismFull(Organism):
         new_size = size + new_start.clip(max=0)
         if (new_size > 0).all() and (m.memory.size - new_start > 0).all():
             m.memory.window.derived(
-                new_start.clip(min=0), np.minimum(new_size, m.memory.size - new_start),
+                new_start.clip(min=0),
+                np.amin([new_size, m.memory.size - new_start, m.memory.size], axis=0),
             ).background(color)
 
     def update_ip(self):
         new_position = self.ip - m.memory.position
-        color = c.colors['ip_bold'] if self.is_selected else c.colors['ip_bold']
+        color = c.colors['ip_bold'] if self.is_selected else c.colors['ip']
         if (
             (new_position >= 0).all()
             and (m.memory.size - new_position > 0).all()
@@ -267,18 +290,13 @@ class OrganismFull(Organism):
             m.memory.window.derived(new_position, (1, 1)).background(color)
 
     def update(self):
-        try:
-            parent_color = (
-                c.colors['parent_bold'] if self.is_selected else c.colors['parent']
-            )
-            self.update_window(self.size, self.start, parent_color)
-            child_color = (
-                c.colors['child_bold'] if self.is_selected else c.colors['child']
-            )
-            self.update_window(self.child_size, self.child_start, child_color)
-            self.update_ip()
-        except Exception:
-            pass
+        parent_color = (
+            c.colors['parent_bold'] if self.is_selected else c.colors['parent']
+        )
+        self.update_window(self.size, self.start, parent_color)
+        child_color = c.colors['child_bold'] if self.is_selected else c.colors['child']
+        self.update_window(self.child_size, self.child_start, child_color)
+        self.update_ip()
 
     def info(self):
         info = ''
@@ -311,4 +329,6 @@ class OrganismFull(Organism):
             child_size=self.child_size,
             child_start=self.child_start,
             is_selected=self.is_selected,
+            children=self.children,
+            reproduction_cycle=self.reproduction_cycle,
         )

@@ -1,3 +1,4 @@
+from copy import copy
 import modules.common as c
 
 
@@ -37,9 +38,8 @@ class Queue:
             self.organisms[self.index].update()
 
     def cycle_all(self):
-        if c.is_running:
-            for organism in self.organisms:
-                organism.cycle()
+        for organism in copy(self.organisms):
+            organism.cycle()
 
     def kill_organisms(self):
         sorted_organisms = sorted(self.organisms, reverse=True)
@@ -49,7 +49,7 @@ class Queue:
         self.organisms = sorted_organisms[ratio:]
 
     def update_all(self):
-        for organism in self.organisms:
+        for organism in copy(self.organisms):
             organism.update()
 
     def toogle_minimal(self):

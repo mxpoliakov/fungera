@@ -17,15 +17,20 @@ class Memory:
     def allocate(self, address: np.array, size: np.array):
         self.allocation_map[
             address[0] : address[0] + size[0], address[1] : address[1] + size[1]
-        ] = np.ones(size)
-
-    def deallocate(self, address: np.array, size: np.array):
-        try:
+        ] = np.ones(
             self.allocation_map[
                 address[0] : address[0] + size[0], address[1] : address[1] + size[1]
-            ] = np.zeros(size)
-        except Exception:
-            pass
+            ].shape
+        )
+
+    def deallocate(self, address: np.array, size: np.array):
+        self.allocation_map[
+            address[0] : address[0] + size[0], address[1] : address[1] + size[1]
+        ] = np.zeros(
+            self.allocation_map[
+                address[0] : address[0] + size[0], address[1] : address[1] + size[1]
+            ].shape
+        )
 
     def is_time_to_kill(self):
         ratio = np.count_nonzero(self.allocation_map) / np.count_nonzero(
@@ -53,7 +58,7 @@ class Memory:
         allocation_region = self.allocation_map[
             address[0] : address[0] + size[0], address[1] : address[1] + size[1]
         ]
-        return np.count_nonzero(allocation_region)
+        return bool(np.count_nonzero(allocation_region))
 
     def cycle(self):
         address = (

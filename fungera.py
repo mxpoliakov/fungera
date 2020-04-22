@@ -127,19 +127,16 @@ class Fungera:
             self.update_info_minimal()
 
     def make_cycle(self):
-        if c.is_running:
-            if self.cycle % c.config['random_rate'] == 0:
-                m.memory.cycle()
-            if self.cycle % c.config['cycle_gap'] == 0:
-                if m.memory.is_time_to_kill():
-                    q.queue.kill_organisms()
-                    self.purges += 1
-            # if self.cycle % c.config['autosave_rate'] == 0:
-            #    self.save_state()
-            if not self.is_minimal:
-                q.queue.update_all()
-            self.cycle += 1
-            self.update_info()
+        if self.cycle % c.config['random_rate'] == 0:
+            m.memory.cycle()
+        if self.cycle % c.config['cycle_gap'] == 0:
+            if m.memory.is_time_to_kill():
+                q.queue.kill_organisms()
+                self.purges += 1
+        if not self.is_minimal:
+            q.queue.update_all()
+        self.cycle += 1
+        self.update_info()
 
     def input_stream(self):
         while True:
@@ -149,10 +146,8 @@ class Fungera:
                 if self.is_minimal:
                     self.update_info_minimal()
             elif key == ord('c') and not c.is_running:
-                c.is_running = not c.is_running
-                self.make_cycle()
                 q.queue.cycle_all()
-                c.is_running = not c.is_running
+                self.make_cycle()
             elif key == curses.KEY_DOWN and not self.is_minimal:
                 self.update_position(c.config['scroll_step'] * c.deltas['down'])
             elif key == curses.KEY_UP and not self.is_minimal:
@@ -175,9 +170,9 @@ class Fungera:
                 self.load_state()
             elif key == ord('k'):
                 q.queue.kill_organisms()
-            elif key == -1:
-                self.make_cycle()
+            elif key == -1 and c.is_running:
                 q.queue.cycle_all()
+                self.make_cycle()
 
 
 if __name__ == '__main__':
