@@ -27,6 +27,8 @@ class Fungera:
         )
         o.OrganismFull(c.config['memory_size'] // 2, genome_size)
         self.update_info()
+        if c.config['snapshot_to_load'] != 'new':
+            self.load_state()
 
     def run(self):
         try:
@@ -53,6 +55,7 @@ class Fungera:
     def update_info_full(self):
         self.info_window.erase()
         info = ''
+        info += '[{}]           \n'.format(c.config['simulation_name'])
         info += 'Cycle      : {}\n'.format(self.cycle)
         info += 'Position   : {}\n'.format(list(m.memory.position))
         info += 'Total      : {}\n'.format(len(q.queue.organisms))
@@ -109,7 +112,7 @@ class Fungera:
             self.toogle_minimal()
             return_to_full = True
         try:
-            if c.config['snapshot_to_load'] == 'last':
+            if c.config['snapshot_to_load'] == 'last' or c.config['snapshot_to_load'] == 'new':
                 filename = max(glob.glob('snapshots/*'), key=os.path.getctime)
             else:
                 filename = c.config['snapshot_to_load']

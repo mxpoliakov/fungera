@@ -1,4 +1,5 @@
 import curses
+import argparse
 from threading import Timer
 import toml
 import numpy as np
@@ -99,10 +100,22 @@ def load_config():
     _config = {}
     for key, value in toml.load('config.toml').items():
         _config[key] = np.array(value) if isinstance(value, list) else value
+    _config['simulation_name'] = args.name
+    _config['snapshot_to_load'] = args.state
     return _config
 
 
 is_running = False
+
+parser = argparse.ArgumentParser(
+    description='Fungera - two-dimentional artificial life simulator'
+)
+parser.add_argument('--name', default='Simulation 1', help='Simulation name')
+parser.add_argument(
+    '--state', default='new', help='State file to load (new/last/filename'
+)
+
+args = parser.parse_args()
 
 try:
     screen = init_curses()

@@ -1,8 +1,6 @@
 memory_size = [5000, 5000]
 info_display_size = [25, 30]
 scroll_step = 50
-simulation_name = 'Simulation'
-snapshot_to_load = 'last'
 kill_organisms_ratio = 0.5
 memory_full_ratio = 0.90
 cycle_gap = 10000
