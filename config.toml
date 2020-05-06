@@ -8,5 +8,5 @@ random_rate = 5
 stack_length = 8
 organism_death_rate = 100
 kill_if_no_child = 25000
-autosave_rate = 1800
+autosave_rate = [10, 2]
 random_seed = 42

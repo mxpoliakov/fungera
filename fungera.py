@@ -12,7 +12,7 @@ import modules.organism as o
 
 class Fungera:
     def __init__(self):
-        self.timer = c.RepeatedTimer(c.config['autosave_rate'], self.save_state)
+        self.timer = c.RepeatedTimer(self.save_state, c.config['autosave_rate'])
         np.random.seed(c.config['random_seed'])
         if not os.path.exists('snapshots'):
             os.makedirs('snapshots')
@@ -112,7 +112,10 @@ class Fungera:
             self.toogle_minimal()
             return_to_full = True
         try:
-            if c.config['snapshot_to_load'] == 'last' or c.config['snapshot_to_load'] == 'new':
+            if (
+                c.config['snapshot_to_load'] == 'last'
+                or c.config['snapshot_to_load'] == 'new'
+            ):
                 filename = max(glob.glob('snapshots/*'), key=os.path.getctime)
             else:
                 filename = c.config['snapshot_to_load']

@@ -1,35 +1,29 @@
 import curses
 import argparse
-from threading import Timer
+from threading import Thread, Event
+import time
 import toml
 import numpy as np
 import modules.window as w
 
 
-class RepeatedTimer:
-    def __init__(self, interval, function, *args, **kwargs):
-        self._timer = None
-        self.interval = interval
+class RepeatedTimer(Thread):
+    def __init__(self, function, autosave_rate):
+        super(RepeatedTimer, self).__init__()
         self.function = function
-        self.args = args
-        self.kwargs = kwargs
-        self.is_running = False
+        self.autosave_rate = autosave_rate
+        self._stop_event = Event()
         self.start()
 
-    def _run(self):
-        self.is_running = False
-        self.start()
-        self.function(*self.args, **self.kwargs)
-
-    def start(self):
-        if not self.is_running:
-            self._timer = Timer(self.interval, self._run)
-            self._timer.start()
-            self.is_running = True
+    def run(self):
+        timeout = self.autosave_rate[0]
+        while not self._stop_event.is_set():
+            time.sleep(timeout)
+            self.function()
+            timeout *= self.autosave_rate[1]
 
     def stop(self):
-        self._timer.cancel()
-        self.is_running = False
+        self._stop_event.set()
 
 
 instructions = {
@@ -100,8 +94,8 @@ def load_config():
     _config = {}
     for key, value in toml.load('config.toml').items():
         _config[key] = np.array(value) if isinstance(value, list) else value
-    _config['simulation_name'] = args.name
-    _config['snapshot_to_load'] = args.state
+    _config['simulation_name'] = line_args.name
+    _config['snapshot_to_load'] = line_args.state
     return _config
 
 
@@ -112,10 +106,10 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('--name', default='Simulation 1', help='Simulation name')
 parser.add_argument(
-    '--state', default='new', help='State file to load (new/last/filename'
+    '--state', default='new', help='State file to load (new/last/filename)'
 )
 
-args = parser.parse_args()
+line_args = parser.parse_args()
 
 try:
     screen = init_curses()
