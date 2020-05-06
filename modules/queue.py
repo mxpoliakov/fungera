@@ -5,6 +5,7 @@ import modules.common as c
 class Queue:
     def __init__(self):
         self.organisms = []
+        self.archive = []
         self.index = None
 
     def add_organism(self, organism):

@@ -12,7 +12,9 @@ import modules.organism as o
 
 class Fungera:
     def __init__(self):
-        self.timer = c.RepeatedTimer(self.save_state, c.config['autosave_rate'])
+        self.timer = c.RepeatedTimer(
+            c.config['autosave_rate'], self.save_state, (True,)
+        )
         np.random.seed(c.config['random_seed'])
         if not os.path.exists('snapshots'):
             os.makedirs('snapshots')
@@ -35,10 +37,10 @@ class Fungera:
             self.input_stream()
         except KeyboardInterrupt:
             curses.endwin()
-            self.timer.stop()
+            self.timer.cancel()
         except Exception:
             curses.endwin()
-            self.timer.stop()
+            self.timer.cancel()
             print(traceback.format_exc())
 
     def load_genome_into_memory(self, filename: str, address: np.array) -> np.array:
@@ -88,9 +90,11 @@ class Fungera:
         m.memory.update(refresh=True)
         q.queue.toogle_minimal()
 
-    def save_state(self):
+    def save_state(self, from_timer=False):
         return_to_full = False
         if not self.is_minimal:
+            if from_timer:
+                return
             self.toogle_minimal()
             return_to_full = True
         filename = 'snapshots/{}_cycle_{}.snapshot'.format(

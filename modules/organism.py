@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 import numpy as np
 import modules.common as c
@@ -30,7 +31,11 @@ class Organism:
         is_selected: Optional[bool] = False,
         children: Optional[int] = 0,
         reproduction_cycle: Optional[int] = 0,
+        parent: Optional[uuid.UUID] = None,
     ):
+        # pylint: disable=invalid-name
+        self.id = uuid.uuid4()
+        self.parent = parent
         # pylint: disable=invalid-name
         self.ip = np.array(address) if ip is None and address is not None else ip
         self.delta = delta
@@ -67,6 +72,7 @@ class Organism:
         self.children = children
 
         q.queue.add_organism(self)
+        q.queue.archive.append(self)
 
         self.mods = {'x': 0, 'y': 1}
 
@@ -180,7 +186,7 @@ class Organism:
     def split_child(self):
         if not np.array_equal(self.child_size, np.array([0, 0])):
             m.memory.deallocate(self.child_start, self.child_size)
-            self.__class__(self.child_start, self.child_size)
+            self.__class__(self.child_start, self.child_size, parent=self.id)
             self.children += 1
             self.reproduction_cycle = 0
         self.child_size = np.array([0, 0])
@@ -232,6 +238,7 @@ class Organism:
             is_selected=self.is_selected,
             children=self.children,
             reproduction_cycle=self.reproduction_cycle,
+            parent=self.parent,
         )
 
 
@@ -251,6 +258,7 @@ class OrganismFull(Organism):
         is_selected: Optional[bool] = False,
         children: Optional[int] = 0,
         reproduction_cycle: Optional[int] = 0,
+        parent: Optional[uuid.UUID] = None,
     ):
         super(OrganismFull, self).__init__(
             address=address,
@@ -266,6 +274,7 @@ class OrganismFull(Organism):
             is_selected=is_selected,
             children=children,
             reproduction_cycle=reproduction_cycle,
+            parent=parent,
         )
 
         self.update()
@@ -331,4 +340,5 @@ class OrganismFull(Organism):
             is_selected=self.is_selected,
             children=self.children,
             reproduction_cycle=self.reproduction_cycle,
+            parent=self.parent,
         )

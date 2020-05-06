@@ -1,29 +1,30 @@
 import curses
 import argparse
 from threading import Thread, Event
-import time
 import toml
 import numpy as np
 import modules.window as w
 
 
 class RepeatedTimer(Thread):
-    def __init__(self, function, autosave_rate):
-        super(RepeatedTimer, self).__init__()
+    def __init__(self, interval, function, args=None, kwargs=None):
+        Thread.__init__(self)
+        self.interval = interval
         self.function = function
-        self.autosave_rate = autosave_rate
-        self._stop_event = Event()
+        self.args = args if args is not None else []
+        self.kwargs = kwargs if kwargs is not None else {}
+        self.finished = Event()
         self.start()
 
-    def run(self):
-        timeout = self.autosave_rate[0]
-        while not self._stop_event.is_set():
-            time.sleep(timeout)
-            self.function()
-            timeout *= self.autosave_rate[1]
+    def cancel(self):
+        self.finished.set()
 
-    def stop(self):
-        self._stop_event.set()
+    def run(self):
+        while not self.finished.wait(self.interval[0]):
+            if not self.finished.is_set():
+                self.function(*self.args, **self.kwargs)
+                self.interval[0] *= self.interval[1]
+        self.finished.set()
 
 
 instructions = {
