@@ -1,4 +1,5 @@
 import uuid
+from copy import copy
 from typing import Optional
 import numpy as np
 import modules.common as c
@@ -32,9 +33,10 @@ class Organism:
         children: Optional[int] = 0,
         reproduction_cycle: Optional[int] = 0,
         parent: Optional[uuid.UUID] = None,
+        organism_id: Optional[uuid.UUID] = None,
     ):
         # pylint: disable=invalid-name
-        self.id = uuid.uuid4()
+        self.organism_id = uuid.uuid4() if organism_id is None else organism_id
         self.parent = parent
         # pylint: disable=invalid-name
         self.ip = np.array(address) if ip is None and address is not None else ip
@@ -72,7 +74,8 @@ class Organism:
         self.children = children
 
         q.queue.add_organism(self)
-        q.queue.archive.append(self)
+        if start is None and address is not None:
+            q.queue.archive.append(copy(self))
 
         self.mods = {'x': 0, 'y': 1}
 
@@ -186,7 +189,7 @@ class Organism:
     def split_child(self):
         if not np.array_equal(self.child_size, np.array([0, 0])):
             m.memory.deallocate(self.child_start, self.child_size)
-            self.__class__(self.child_start, self.child_size, parent=self.id)
+            self.__class__(self.child_start, self.child_size, parent=self.organism_id)
             self.children += 1
             self.reproduction_cycle = 0
         self.child_size = np.array([0, 0])
@@ -205,6 +208,12 @@ class Organism:
     def cycle(self):
         try:
             getattr(self, c.instructions[self.inst()][1])()
+            if (
+                c.config['penalize_parasitism']
+                and not m.memory.is_allocated(self.ip)
+                and max(np.abs(self.ip - self.start)) > c.config['penalize_parasitism']
+            ):
+                raise ValueError
         except Exception:
             self.errors += 1
         new_ip = self.ip + self.delta
@@ -239,6 +248,7 @@ class Organism:
             children=self.children,
             reproduction_cycle=self.reproduction_cycle,
             parent=self.parent,
+            organism_id=self.organism_id,
         )
 
 
@@ -259,6 +269,7 @@ class OrganismFull(Organism):
         children: Optional[int] = 0,
         reproduction_cycle: Optional[int] = 0,
         parent: Optional[uuid.UUID] = None,
+        organism_id: Optional[uuid.UUID] = None,
     ):
         super(OrganismFull, self).__init__(
             address=address,
@@ -275,6 +286,7 @@ class OrganismFull(Organism):
             children=children,
             reproduction_cycle=reproduction_cycle,
             parent=parent,
+            organism_id=organism_id,
         )
 
         self.update()
@@ -341,4 +353,5 @@ class OrganismFull(Organism):
             children=self.children,
             reproduction_cycle=self.reproduction_cycle,
             parent=self.parent,
+            organism_id=self.organism_id,
         )

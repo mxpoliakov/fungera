@@ -9,4 +9,5 @@ stack_length = 8
 organism_death_rate = 100
 kill_if_no_child = 25000
 autosave_rate = [10, 2]
+penalize_parasitism = 100
 random_seed = 42
