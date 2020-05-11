@@ -51,7 +51,7 @@ python fungera.py --name "Simulation 1"
 | <kbd>&#8592;</kbd> | Move memory view left                               |
 | <kbd>&#8594;</kbd> | Move memory view right                              |
 | <kbd>d</kbd>       | Select next organism                                |
-| <kbd>d</kbd>       | Select previous organism                            |
+| <kbd>a</kbd>       | Select previous organism                            |
 | <kbd>p</kbd>       | Save simulation                                     |
 | <kbd>l</kbd>       | Load last saved simulation                          |
 | <kbd>m</kbd>       | Toogle minimal mode                                 |
