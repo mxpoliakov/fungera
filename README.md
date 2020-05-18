@@ -36,9 +36,9 @@
 | `P`      | 1       | Pop value of register into the stack            | Stack       |
 
 ### Running Fungera
-At least Python 3.7 is required to run Fungera. Once it is installed, running Fungera is simple.
+At least Python 3.7 is required to run Fungera. Once it is installed, running Fungera is simple. 
 ```
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python fungera.py --name "Simulation 1"
 ```
 
