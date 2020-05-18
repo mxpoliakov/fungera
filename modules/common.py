@@ -1,4 +1,5 @@
 import curses
+import os
 import argparse
 from threading import Thread, Event
 import toml
@@ -73,6 +74,17 @@ colors = {
 
 
 def init_curses():
+    terminal_size = os.get_terminal_size()
+    if terminal_size.columns < 100 or terminal_size.lines < 25:
+        print(
+            'Terminal size is too small. The terminal size must be at least (100, 25)'
+        )
+        print(
+            'Your terminal size: ({}, {})'.format(
+                terminal_size.columns, terminal_size.lines
+            )
+        )
+        exit(0)
     _screen = w.Window(curses.initscr())
     _screen.setup()
 
