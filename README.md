@@ -42,6 +42,9 @@ python -m pip install -r requirements.txt
 python fungera.py --name "Simulation 1"
 ```
 
+### Install issues
+In case of issues with curses library under windows 10, please use [this](https://stackoverflow.com/questions/32417379/what-is-needed-for-curses-in-python-3-4-on-windows7) approach. Ant than install all dependencies from requirements.txt file manually excepting curses.
+
 ### TUI controls
 | Key                | Action                                              |
 |--------------------|-----------------------------------------------------|
